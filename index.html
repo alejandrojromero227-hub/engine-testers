@@ -1179,6 +1179,7 @@
       addVehicleWear(truck, .32, 23);
       towDelivery = {
         truck,
+        wreck,
         distance: (gasRoadParameter + .94) % 1,
         speed: .024,
         state: "road",
@@ -1694,6 +1695,8 @@
               vehicle.fuelTime = 4 + Math.random() * 6;
             } else {
               vehicle.distance = vehicle.rejoinParameter;
+              const releasedSpot = vehicle.gasSpotIndex;
+              if (releasedSpot >= 0) gasSpotOccupancy[releasedSpot] = false;
               vehicle.path = null;
               vehicle.gasSpotIndex = -1;
               vehicle.state = "road";
@@ -1732,8 +1735,11 @@
         towDelivery.truck.position.set(point.x, .04, point.z);
         towDelivery.truck.rotation.y = Math.atan2(-tangent.x, -tangent.z);
         if (towDelivery.routeProgress >= 1) {
+          world.attach(towDelivery.wreck);
+          towDelivery.wreck.position.set(53.2, .08, 5.2);
+          towDelivery.wreck.rotation.set(0, .35, 0);
           towDelivery.state = "parked";
-          showToast("Tow-in received · Crash-damaged car delivered to Northside Salvage");
+          showToast("Tow-in unloaded · Crash-damaged car delivered to the salvage lot");
         }
       }
     }
@@ -1777,15 +1783,22 @@
       burnoutActive = false;
       isDriving = false;
       gameScreen.classList.remove("driving");
-      const parkedPosition = activeVehicle.position;
-      mechanic.x = parkedPosition.x + Math.cos(driveHeading) * 1.8;
-      mechanic.z = parkedPosition.z - Math.sin(driveHeading) * 1.8;
       if (activeTrafficVehicle) {
         activeTrafficVehicle.parked = true;
         if (activeTrafficVehicle.gasSpotIndex >= 0) gasSpotOccupancy[activeTrafficVehicle.gasSpotIndex] = false;
         activeTrafficVehicle.gasSpotIndex = -1;
+        if (activeTrafficVehicle.owned) {
+          const stall = vehicleParkingSpaces[activeTrafficVehicle.parkingIndex];
+          if (stall) {
+            activeVehicle.position.set(stall.x, .04, stall.z);
+            activeVehicle.rotation.y = Math.PI;
+          }
+        }
       }
       const wasWorkCar = activeVehicleIsWorkCar;
+      const parkedPosition = activeVehicle.position;
+      mechanic.x = parkedPosition.x + Math.cos(driveHeading) * 1.8;
+      mechanic.z = parkedPosition.z - Math.sin(driveHeading) * 1.8;
       refreshToolbelt();
       activeVehicle = null;
       activeVehicleSteeringWheel = null;
@@ -1840,7 +1853,7 @@
       else if (clockedIn && !doorsPassable() && clockDistance < 12) message = "GO TO THE WALL SWITCH TO OPEN THE BAY";
       else if (clockedIn && doorsPassable() && terminalDistance < 3) message = "E · OPEN PARTS TERMINAL";
       else if (clockedIn && doorsPassable() && availableTool && availableTool.distance < 2.8) message = `E · PICK UP ${availableTool.tool.label.toUpperCase()}`;
-      else if (clockedIn && doorsPassable() && carDistance < 4.8) {
+      else if (clockedIn && workCarGroup.visible && doorsPassable() && carDistance < 4.8) {
         message = repairsDone.size === toolSpecs.length ? "E · TAKE THE REPAIRED CAR FOR A DRIVE" : !selectedTool ? "SELECT A TOOL TO WORK ON BAY 01" : repairsDone.has(selectedTool) ? "THAT REPAIR IS DONE · SELECT ANOTHER TOOL" : !partsInventory.has(requiredPart[selectedTool]) ? "ORDER THE MATCHING PART AT THE COMPUTER" : `E · USE ${selectedTool.toUpperCase()} ON BAY 01`;
       }
       else if (clockedIn && nearbyTraffic && nearbyTraffic.distance < 3.5) message = "E · TAKE THE PASSING CAR FOR A DRIVE";
@@ -1894,21 +1907,37 @@
       if (repairsDone.size === toolSpecs.length) {
         const finishedJob = activeJob;
         const payout = finishedJob?.payout || 0;
+        let deliveredToParking = false;
         shopCredits += payout;
-        if (finishedJob) completedJobIds.add(finishedJob.id);
+        if (finishedJob) {
+          completedJobIds.add(finishedJob.id);
+          const deliveredCar = spawnOwnedCar({
+            id: `client-${finishedJob.id}`,
+            name: `${finishedJob.client} delivery`,
+            color: finishedJob.color || "#99422f",
+            price: 0,
+            wear: .1,
+            clientCar: true,
+          });
+          deliveredToParking = Boolean(deliveredCar);
+          if (deliveredCar) showToast(`${finishedJob.client}'s repaired car moved to customer parking`);
+          else showToast("Customer parking is full · Repaired car is ready at Bay 01");
+        }
         activeJob = jobQueue.shift() || null;
         if (activeJob) {
-          repairsDone.clear();
-          workCarDamage.visible = true;
-          workCarMaterial.color.set(activeJob.color || "#99422f");
-          batteryTerminalMaterial.color.set("#c74d37");
-          batteryTerminalMaterial.emissive.set("#7d1e11");
-          document.querySelector("#map-shift").textContent = `${activeJob.client} · Bay 01`;
+          activateJob(activeJob);
           document.querySelector("#map-objective-text").textContent = `${activeJob.title} · $${payout} paid. Order parts for the next job.`;
           showToast(`Job paid · $${payout} · ${activeJob.client}'s car is next`);
         } else {
-          document.querySelector("#map-objective-text").textContent = `Bay 01 complete · $${payout} earned. The customer car is road-ready.`;
-          document.querySelector("#map-shift").textContent = "Service complete · Bay 01";
+          if (deliveredToParking) {
+            workCarGroup.visible = false;
+            document.querySelector("#map-objective-text").textContent = `Bay 01 complete · $${payout} earned. Car delivered to customer parking.`;
+            document.querySelector("#map-shift").textContent = "Service complete · Customer parking";
+          } else {
+            workCarGroup.visible = true;
+            document.querySelector("#map-objective-text").textContent = `Bay 01 complete · $${payout} earned. The customer car is road-ready.`;
+            document.querySelector("#map-shift").textContent = "Service complete · Bay 01";
+          }
           showToast(`Repair complete · $${payout} added to the shop account`);
         }
       } else {
@@ -1947,7 +1976,7 @@
       document.querySelectorAll("[data-buy-car]").forEach((button) => {
         const vehicle = vehicleCatalog.find((entry) => entry.id === button.dataset.buyCar);
         const owned = ownedCars.some((entry) => entry.marketId === vehicle.id);
-        const full = ownedCars.length >= vehicleParkingSpaces.length;
+        const full = nextFreeParkingIndex(false) < 0;
         button.disabled = owned || full || shopCredits < vehicle.price;
         button.textContent = owned ? "In the lot" : full ? "Lot full" : shopCredits < vehicle.price ? "Short funds" : `Buy · $${vehicle.price}`;
       });
@@ -1962,6 +1991,9 @@
     function activateJob(job) {
       activeJob = job;
       repairsDone.clear();
+      workCarGroup.visible = true;
+      workCarGroup.position.set(-25, 0, -6.4);
+      workCarGroup.rotation.y = 0;
       workCarDamage.visible = true;
       workCarMaterial.color.set(job.color || "#99422f");
       batteryTerminalMaterial.color.set("#c74d37");
@@ -1984,23 +2016,39 @@
     }
 
     function spawnOwnedCar(vehicleSpec, savedVehicle = null) {
-      const parkingSpace = vehicleParkingSpaces[ownedCars.length];
+      const savedIndex = savedVehicle?.parkingIndex;
+      const clientCar = Boolean(vehicleSpec.clientCar || savedVehicle?.clientCar);
+      const minIndex = clientCar ? 0 : 1;
+      const parkingIndex = Number.isInteger(savedIndex) && savedIndex >= minIndex && !ownedCars.some((entry) => entry.parkingIndex === savedIndex)
+        ? savedIndex
+        : nextFreeParkingIndex(clientCar);
+      const parkingSpace = vehicleParkingSpaces[parkingIndex];
       if (!parkingSpace) return null;
       const vehicle = createTrafficCar(vehicleSpec.color, 0, 0, 1, vehicleSpec.wear);
       vehicle.parked = true;
       vehicle.owned = true;
       vehicle.marketId = vehicleSpec.id;
-      vehicle.car.position.set(savedVehicle?.x ?? parkingSpace.x, .04, savedVehicle?.z ?? parkingSpace.z);
+      vehicle.clientCar = clientCar;
+      vehicle.vehicleName = vehicleSpec.name;
+      vehicle.vehicleColor = vehicleSpec.color;
+      vehicle.wear = vehicleSpec.wear;
+      vehicle.parkingIndex = parkingIndex;
+      vehicle.car.position.set(parkingSpace.x, .04, parkingSpace.z);
       vehicle.car.rotation.y = savedVehicle?.heading ?? Math.PI;
       ownedCars.push(vehicle);
       return vehicle;
     }
 
+    function nextFreeParkingIndex(clientCar) {
+      const occupied = new Set(ownedCars.map((vehicle) => vehicle.parkingIndex));
+      return vehicleParkingSpaces.findIndex((space, index) => index >= (clientCar ? 0 : 1) && !occupied.has(index));
+    }
+
     function buyVehicle(id) {
       const vehicle = vehicleCatalog.find((entry) => entry.id === id);
       if (!vehicle || ownedCars.some((entry) => entry.marketId === id)) return;
-      if (ownedCars.length >= vehicleParkingSpaces.length || shopCredits < vehicle.price) {
-        showToast(ownedCars.length >= vehicleParkingSpaces.length ? "The customer lot is full" : "Not enough in the shop account");
+      if (nextFreeParkingIndex(false) < 0 || shopCredits < vehicle.price) {
+        showToast(nextFreeParkingIndex(false) < 0 ? "The customer lot is full" : "Not enough in the shop account");
         return;
       }
       shopCredits -= vehicle.price;
@@ -2078,7 +2126,7 @@
         return;
       }
       const carDistance = Math.hypot(mechanic.x - workCarGroup.position.x, mechanic.z - workCarGroup.position.z);
-      if (carDistance < 4.8) {
+      if (workCarGroup.visible && carDistance < 4.8) {
         if (repairsDone.size === toolSpecs.length) enterVehicle();
         else repairCar();
         return;
@@ -2203,8 +2251,8 @@
       const forward = -movementY;
       const worldX = -Math.sin(cameraYaw) * forward + Math.cos(cameraYaw) * movementX;
       const worldZ = -Math.cos(cameraYaw) * forward - Math.sin(cameraYaw) * movementX;
-      const nextX = Math.max(-49, Math.min(48, mechanic.x + worldX / movementLength * 7 * elapsed));
-      const nextZ = Math.max(-28, Math.min(42, mechanic.z + worldZ / movementLength * 7 * elapsed));
+      const nextX = Math.max(-96, Math.min(96, mechanic.x + worldX / movementLength * 7 * elapsed));
+      const nextZ = Math.max(-66, Math.min(66, mechanic.z + worldZ / movementLength * 7 * elapsed));
       if (!isBlockedPosition(nextX, mechanic.z)) mechanic.x = nextX;
       if (!isBlockedPosition(mechanic.x, nextZ)) mechanic.z = nextZ;
       updateInteractionPrompt();
@@ -2319,6 +2367,11 @@
       save.completedJobIds = [...completedJobIds];
       save.ownedVehicles = ownedCars.map((vehicle) => ({
         id: vehicle.marketId,
+        name: vehicle.vehicleName,
+        color: vehicle.vehicleColor,
+        wear: vehicle.wear,
+        clientCar: vehicle.clientCar,
+        parkingIndex: vehicle.parkingIndex,
         x: vehicle.car.position.x,
         z: vehicle.car.position.z,
         heading: vehicle.car.rotation.y,
@@ -2374,9 +2427,16 @@
       }
       ownedCars.length = 0;
       for (const savedVehicle of save.ownedVehicles || []) {
-        const spec = vehicleCatalog.find((entry) => entry.id === savedVehicle.id);
+        const spec = vehicleCatalog.find((entry) => entry.id === savedVehicle.id) || (savedVehicle.clientCar ? {
+          id: savedVehicle.id,
+          name: savedVehicle.name || "Completed client vehicle",
+          color: savedVehicle.color || "#99422f",
+          wear: Number.isFinite(savedVehicle.wear) ? savedVehicle.wear : .1,
+          clientCar: true,
+        } : null);
         if (spec) spawnOwnedCar(spec, savedVehicle);
       }
+      workCarGroup.visible = Boolean(activeJob) || !ownedCars.some((vehicle) => vehicle.clientCar);
       selectedTool = toolInventory.has(save.selectedTool) ? save.selectedTool : toolInventory.values().next().value || null;
       for (const [id, item] of toolItems) item.visible = !toolInventory.has(id);
       workCarDamage.visible = !repairsDone.has("hammer");
