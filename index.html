@@ -1,0 +1,1613 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#151916">
+  <title>Second Shift | Workshop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #f4f1e8;
+      --muted: #b7b8ac;
+      --dim: #777c72;
+      --panel: rgba(18, 23, 20, .9);
+      --line: rgba(238, 235, 220, .19);
+      --lime: #d3e55f;
+      --rust: #d97c51;
+      --font-display: "Barlow Condensed", Impact, sans-serif;
+      --font-body: "DM Sans", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      min-height: 100svh;
+      margin: 0;
+      overflow: hidden;
+      color: var(--ink);
+      background: #151916;
+      font-family: var(--font-body);
+    }
+
+    button, input { font: inherit; }
+    button { color: inherit; }
+
+    .workshop {
+      position: relative;
+      display: grid;
+      min-height: 100svh;
+      grid-template-rows: auto 1fr auto;
+      isolation: isolate;
+      overflow: hidden;
+      background: #242a25;
+    }
+    .workshop[hidden] { display: none; }
+
+    .workshop::before,
+    .workshop::after {
+      position: absolute;
+      z-index: -1;
+      inset: 0;
+      content: "";
+      pointer-events: none;
+    }
+
+    .workshop::before {
+      background-image: url("https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?auto=format&fit=crop&w=2400&q=88");
+      background-position: center 54%;
+      background-size: cover;
+      animation: reveal-shop 1.1s ease-out both;
+    }
+
+    .workshop::after {
+      background:
+        linear-gradient(90deg, rgba(13, 17, 15, .94) 0%, rgba(13, 17, 15, .72) 32%, rgba(13, 17, 15, .2) 72%, rgba(13, 17, 15, .42) 100%),
+        linear-gradient(0deg, rgba(13, 17, 15, .86) 0%, transparent 29%, rgba(13, 17, 15, .25) 100%);
+    }
+
+    .topbar, .bottombar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-inline: clamp(22px, 5vw, 76px);
+    }
+
+    .topbar { padding-top: 30px; }
+    .topbar-tools { display: flex; align-items: center; gap: 18px; }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-mark {
+      display: grid;
+      width: 36px;
+      aspect-ratio: 1;
+      place-items: center;
+      border: 1px solid rgba(211, 229, 95, .68);
+      color: var(--lime);
+      font-family: var(--font-display);
+      font-size: 20px;
+      font-weight: 800;
+      transform: rotate(-8deg);
+    }
+
+    .brand-name {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: 0;
+      line-height: 1;
+      text-transform: uppercase;
+    }
+
+    .brand-subtitle {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 9px;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+
+    .shop-status {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: #e2e2d6;
+      font-size: 11px;
+      letter-spacing: .11em;
+      text-transform: uppercase;
+    }
+
+    .status-light {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 13px rgba(211, 229, 95, .55);
+    }
+
+    .setting-copy { display: grid; gap: 4px; }
+    .setting-state { color: var(--muted); font-size: 10px; }
+
+    main {
+      display: flex;
+      align-items: center;
+      padding: 34px clamp(22px, 10vw, 150px) 42px;
+    }
+
+    .menu {
+      width: min(100%, 480px);
+      animation: rise-in .65s .1s ease-out both;
+    }
+
+    .eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      margin: 0 0 15px;
+      color: var(--lime);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow::before { width: 28px; height: 1px; background: var(--lime); content: ""; }
+
+    h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(66px, 9.5vw, 118px);
+      font-weight: 900;
+      letter-spacing: 0;
+      line-height: .76;
+      text-transform: uppercase;
+    }
+
+    h1 span { display: block; color: var(--lime); }
+
+    .intro {
+      max-width: 335px;
+      margin: 25px 0 30px;
+      color: #d0d0c6;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .menu-actions { display: grid; width: min(100%, 292px); gap: 9px; }
+
+    .action {
+      display: flex;
+      min-height: 48px;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 15px;
+      border: 1px solid var(--line);
+      background: rgba(19, 23, 20, .34);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-align: left;
+      text-transform: uppercase;
+      transition: background .2s, border-color .2s, color .2s, transform .2s;
+    }
+
+    .action:hover { border-color: var(--lime); background: rgba(211, 229, 95, .09); transform: translateX(3px); }
+    .action:focus-visible, .customize-tab:focus-visible, .close-button:focus-visible, .swatch:focus-visible { outline: 2px solid var(--lime); outline-offset: 3px; }
+
+    .action-primary {
+      min-height: 54px;
+      border-color: var(--lime);
+      background: var(--lime);
+      color: #1a2017;
+    }
+
+    .action-primary:hover { background: #e2ee82; color: #1a2017; }
+    .action-label { display: flex; align-items: center; gap: 12px; }
+    .action-icon { color: var(--lime); font-size: 15px; }
+    .action-primary .action-icon { color: #1a2017; }
+    .action-hint { color: var(--dim); font-size: 10px; letter-spacing: .04em; }
+    .action-primary .action-hint { color: #455025; }
+
+    .customize-tab {
+      position: fixed;
+      right: clamp(18px, 4vw, 56px);
+      bottom: 76px;
+      z-index: 2;
+      display: flex;
+      min-height: 64px;
+      align-items: center;
+      gap: 13px;
+      padding: 8px 14px 8px 8px;
+      border: 1px solid var(--line);
+      background: rgba(18, 23, 20, .82);
+      cursor: pointer;
+      text-align: left;
+      transition: border-color .2s, background .2s;
+    }
+
+    .customize-tab:hover, .customize-tab[aria-expanded="true"] { border-color: var(--lime); background: rgba(18, 23, 20, .96); }
+
+    .avatar {
+      width: 46px;
+      height: 46px;
+      flex: 0 0 auto;
+      border: 1px solid rgba(211, 229, 95, .55);
+      background-image: url("https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=160&h=160&q=80");
+      background-position: center;
+      background-size: cover;
+    }
+
+    .customize-copy { display: grid; gap: 3px; }
+    .customize-kicker { color: var(--muted); font-size: 9px; letter-spacing: .13em; text-transform: uppercase; }
+    .customize-title { font-family: var(--font-display); font-size: 17px; font-weight: 700; text-transform: uppercase; }
+    .customize-arrow { padding-left: 8px; color: var(--lime); font-size: 16px; }
+
+    .customize-panel {
+      position: fixed;
+      right: clamp(18px, 4vw, 56px);
+      bottom: 150px;
+      z-index: 3;
+      width: min(290px, calc(100vw - 36px));
+      padding: 20px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      box-shadow: 0 18px 55px rgba(0, 0, 0, .4);
+      animation: rise-in .18s ease-out both;
+    }
+
+    [hidden] { display: none !important; }
+    .panel-heading { margin: 0 0 16px; font-family: var(--font-display); font-size: 22px; text-transform: uppercase; }
+    .character-preview {
+      position: relative;
+      height: 112px;
+      margin-bottom: 15px;
+      overflow: hidden;
+      background-image: linear-gradient(0deg, rgba(16, 20, 17, .28), rgba(16, 20, 17, .04)), url("https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=600&h=260&q=85");
+      background-position: center 43%;
+      background-size: cover;
+    }
+
+    .character-preview::after { position: absolute; inset: 0; background: var(--jacket-color, #758252); content: ""; mix-blend-mode: color; opacity: .42; pointer-events: none; }
+    .character-tag { position: absolute; z-index: 1; bottom: 9px; left: 10px; color: white; font-size: 9px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; text-shadow: 0 1px 4px #000; }
+    .panel-label { display: block; margin: 12px 0 9px; color: var(--muted); font-size: 9px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; }
+    .swatches { display: flex; gap: 9px; }
+    .swatch { width: 27px; height: 27px; border: 2px solid transparent; border-radius: 50%; cursor: pointer; }
+    .swatch[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 2px var(--lime); }
+    .swatch[data-color="olive"] { background: #758252; }
+    .swatch[data-color="rust"] { background: var(--rust); }
+    .swatch[data-color="navy"] { background: #637984; }
+    .swatch[data-color="charcoal"] { background: #474b45; }
+    .panel-note { margin: 13px 0 0; color: var(--dim); font-size: 10px; line-height: 1.5; }
+
+    .bottombar { padding-bottom: 24px; color: #b9b9ae; font-size: 9px; letter-spacing: .14em; text-transform: uppercase; }
+    .coordinates { display: flex; align-items: center; gap: 9px; }
+    .coordinates::before { width: 5px; height: 5px; background: var(--rust); content: ""; }
+    .build { color: #858980; }
+
+    dialog {
+      width: min(430px, calc(100vw - 32px));
+      padding: 0;
+      border: 1px solid var(--line);
+      background: #1b211d;
+      color: var(--ink);
+      box-shadow: 0 24px 90px rgba(0, 0, 0, .65);
+    }
+
+    dialog::backdrop { background: rgba(7, 10, 8, .73); backdrop-filter: blur(5px); }
+    .dialog-content { padding: 25px; }
+    .dialog-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+    .dialog-eyebrow { margin: 0 0 6px; color: var(--lime); font-size: 9px; font-weight: 700; letter-spacing: .17em; text-transform: uppercase; }
+    .dialog-title { margin: 0; font-family: var(--font-display); font-size: 32px; line-height: 1; text-transform: uppercase; }
+    .close-button { width: 34px; height: 34px; border: 1px solid var(--line); background: transparent; cursor: pointer; font-size: 18px; }
+    .dialog-copy { margin: 17px 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .save-slot { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px; border: 1px solid var(--line); }
+    .slot-info { display: grid; gap: 5px; }
+    .slot-name { font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .slot-meta { color: var(--muted); font-size: 10px; }
+    .slot-state { color: var(--lime); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 17px; }
+    .dialog-actions .action { min-height: 42px; padding-inline: 13px; }
+
+    .setting-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .setting-row label { font-size: 11px; font-weight: 600; }
+    .setting-row input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: var(--lime); }
+    .setting-value { color: var(--muted); font-size: 10px; }
+    .toggle { width: 38px; height: 21px; accent-color: var(--lime); cursor: pointer; }
+    .toast {
+      position: fixed;
+      z-index: 30;
+      bottom: 24px;
+      left: 50%;
+      padding: 12px 17px;
+      border: 1px solid rgba(211, 229, 95, .5);
+      background: #1b211d;
+      color: var(--ink);
+      font-size: 11px;
+      transform: translate(-50%, 12px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s, transform .2s;
+    }
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+    .game-screen {
+      position: fixed;
+      z-index: 10;
+      inset: 0;
+      overflow: hidden;
+      background: #c4a16d;
+    }
+    .game-screen[hidden] { display: none; }
+    .game-canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+    .game-hud { position: absolute; inset: 0; pointer-events: none; }
+    .game-screen.locked { cursor: none; }
+    .map-topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 24px clamp(18px, 4vw, 56px);
+      background: linear-gradient(180deg, rgba(17, 22, 19, .78), transparent);
+    }
+    .map-title-block { display: grid; gap: 5px; }
+    .map-kicker { color: var(--lime); font-size: 9px; font-weight: 700; letter-spacing: .2em; text-transform: uppercase; }
+    .map-title { margin: 0; font-family: var(--font-display); font-size: 30px; line-height: 1; text-transform: uppercase; }
+    .map-subtitle { color: #d3d1c4; font-size: 11px; }
+    .map-exit {
+      min-height: 40px;
+      padding: 0 13px;
+      border: 1px solid rgba(244, 241, 232, .45);
+      background: rgba(18, 23, 20, .62);
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      pointer-events: auto;
+      text-transform: uppercase;
+    }
+    .map-exit:hover { border-color: var(--lime); color: var(--lime); }
+    .map-actions { display: flex; align-items: center; gap: 9px; pointer-events: auto; }
+    .map-objective {
+      position: absolute;
+      bottom: 28px;
+      left: clamp(18px, 4vw, 56px);
+      display: grid;
+      gap: 6px;
+      padding: 14px 17px;
+      border-left: 2px solid var(--lime);
+      background: rgba(18, 23, 20, .8);
+    }
+    .map-objective-label { color: var(--lime); font-size: 9px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; }
+    .map-objective-text { color: var(--ink); font-size: 12px; }
+    .map-keys { color: #c2c4b8; font-size: 9px; letter-spacing: .06em; }
+    .work-prompt {
+      position: absolute;
+      bottom: 125px;
+      left: 50%;
+      padding: 11px 16px;
+      border: 1px solid rgba(211, 229, 95, .7);
+      background: rgba(18, 23, 20, .9);
+      color: var(--ink);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      transform: translateX(-50%);
+    }
+    .touch-controls { display: none; }
+    .toolbelt { position: absolute; right: clamp(18px, 4vw, 56px); bottom: 28px; display: flex; gap: 6px; pointer-events: auto; }
+    .tool-slot {
+      min-width: 84px;
+      min-height: 40px;
+      padding: 0 9px;
+      border: 1px solid rgba(244, 241, 232, .3);
+      background: rgba(18, 23, 20, .78);
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .tool-slot:disabled { color: #81847b; cursor: not-allowed; opacity: .68; }
+    .tool-slot[aria-pressed="true"] { border-color: var(--lime); color: var(--lime); }
+    .touch-key {
+      display: grid;
+      width: 43px;
+      height: 43px;
+      place-items: center;
+      border: 1px solid rgba(244, 241, 232, .35);
+      background: rgba(18, 23, 20, .62);
+      color: var(--ink);
+      font-size: 15px;
+      touch-action: none;
+      user-select: none;
+    }
+    .touch-key:active { border-color: var(--lime); color: var(--lime); }
+
+    @media (max-width: 640px) {
+      .topbar-tools { gap: 10px; }
+      .shop-status { font-size: 8px; letter-spacing: .04em; }
+      .map-topbar { padding-top: 17px; }
+      .map-title { font-size: 25px; }
+      .map-subtitle { max-width: 190px; font-size: 10px; }
+      .map-exit { min-height: 36px; padding-inline: 9px; font-size: 9px; }
+      .map-actions { gap: 6px; }
+      .toolbelt { right: 16px; bottom: 126px; gap: 4px; }
+      .tool-slot { min-width: 70px; min-height: 36px; padding-inline: 5px; font-size: 8px; }
+      .map-objective { right: 16px; bottom: 18px; left: 16px; max-width: 280px; padding: 11px 13px; }
+      .work-prompt { bottom: 174px; white-space: nowrap; }
+    }
+
+    @media (pointer: coarse), (max-width: 760px) {
+      .touch-controls {
+        position: absolute;
+        right: 19px;
+        bottom: 24px;
+        display: grid;
+        grid-template-columns: repeat(3, 43px);
+        grid-template-rows: repeat(2, 43px);
+        gap: 4px;
+        pointer-events: auto;
+      }
+      .touch-key[data-direction="up"] { grid-column: 2; grid-row: 1; }
+      .touch-key[data-direction="left"] { grid-column: 1; grid-row: 2; }
+      .touch-key[data-direction="down"] { grid-column: 2; grid-row: 2; }
+      .touch-key[data-direction="right"] { grid-column: 3; grid-row: 2; }
+      .map-keys { display: none; }
+    }
+
+    .reduced-motion *, .reduced-motion *::before, .reduced-motion *::after {
+      animation-duration: .01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: .01ms !important;
+    }
+
+    @keyframes rise-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes reveal-shop { from { opacity: .5; transform: scale(1.025); } to { opacity: 1; transform: scale(1); } }
+
+    @media (max-width: 640px) {
+      .topbar { padding-top: 20px; }
+      .shop-status { font-size: 8px; letter-spacing: .04em; }
+      main { align-items: center; padding: 35px 26px 126px; }
+      h1 { font-size: clamp(68px, 19vw, 100px); }
+      .intro { max-width: 290px; margin-block: 20px 24px; font-size: 12px; }
+      .menu-actions { width: min(100%, 320px); }
+      .customize-tab { right: 16px; bottom: 60px; min-height: 56px; }
+      .avatar { width: 38px; height: 38px; }
+      .customize-panel { right: 16px; bottom: 126px; }
+      .bottombar { padding-bottom: 17px; font-size: 8px; }
+      .build { display: none; }
+    }
+
+    @media (max-height: 650px) and (min-width: 641px) {
+      .topbar { padding-top: 16px; }
+      main { padding-block: 15px; }
+      h1 { font-size: 76px; }
+      .intro { margin-block: 16px 18px; }
+      .action { min-height: 42px; }
+      .action-primary { min-height: 48px; }
+      .customize-tab { bottom: 56px; }
+      .customize-panel { bottom: 128px; }
+      .bottombar { padding-bottom: 14px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="workshop">
+    <header class="topbar">
+      <div class="brand" aria-label="Second Shift Workshop">
+        <div class="brand-mark" aria-hidden="true">2S</div>
+        <div>
+          <p class="brand-name">Second Shift</p>
+          <span class="brand-subtitle">Motor works · Est. 1987</span>
+        </div>
+      </div>
+      <div class="shop-status"><span class="status-light" aria-hidden="true"></span> Open late · Bay 03</div>
+    </header>
+
+    <main>
+      <section class="menu" aria-labelledby="game-title">
+        <p class="eyebrow">Your shop. Your second chance.</p>
+        <h1 id="game-title">Second <span>Shift</span></h1>
+        <p class="intro">The lights are on, the tools are ready, and there’s one old engine that still has some fight left in it.</p>
+        <nav class="menu-actions" aria-label="Main menu">
+          <button class="action action-primary" id="play-button" type="button">
+            <span class="action-label"><span class="action-icon" aria-hidden="true">▶</span> Play</span>
+            <span class="action-hint">Start shift</span>
+          </button>
+          <button class="action" id="save-button" type="button">
+            <span class="action-label"><span class="action-icon" aria-hidden="true">▤</span> Save file</span>
+            <span class="action-hint" id="save-hint">Slot 01</span>
+          </button>
+          <button class="action" id="settings-button" type="button">
+            <span class="action-label"><span class="action-icon" aria-hidden="true">⚙</span> Settings</span>
+            <span class="action-hint">Configure</span>
+          </button>
+        </nav>
+      </section>
+    </main>
+
+    <button class="customize-tab" id="customize-button" type="button" aria-expanded="false" aria-controls="customize-panel">
+      <span class="avatar" aria-hidden="true"></span>
+      <span class="customize-copy"><span class="customize-kicker">Your mechanic</span><span class="customize-title" id="mechanic-name">Riley Carter</span></span>
+      <span class="customize-arrow" aria-hidden="true">↗</span>
+    </button>
+
+    <section class="customize-panel" id="customize-panel" aria-labelledby="customize-title" hidden>
+      <h2 class="panel-heading" id="customize-title">Clock in as you</h2>
+      <div class="character-preview"><span class="character-tag">Shop floor · Night shift</span></div>
+      <span class="panel-label">Work jacket</span>
+      <div class="swatches" role="group" aria-label="Choose work jacket color">
+        <button class="swatch" type="button" data-color="olive" aria-label="Olive jacket" aria-pressed="true"></button>
+        <button class="swatch" type="button" data-color="rust" aria-label="Rust jacket" aria-pressed="false"></button>
+        <button class="swatch" type="button" data-color="navy" aria-label="Blue jacket" aria-pressed="false"></button>
+        <button class="swatch" type="button" data-color="charcoal" aria-label="Charcoal jacket" aria-pressed="false"></button>
+      </div>
+      <p class="panel-note" id="customize-note">Olive jacket selected. Your look is saved automatically.</p>
+    </section>
+
+    <footer class="bottombar">
+      <span class="coordinates">Northside · 11:47 PM</span>
+      <span class="build">A little shop with a lot of heart</span>
+    </footer>
+  </div>
+
+  <section class="game-screen" id="game-screen" aria-label="Desert backroad map" hidden>
+    <canvas class="game-canvas" id="game-canvas" aria-label="Three-dimensional desert gas station and Motor Works repair shop"></canvas>
+    <div class="game-hud">
+      <div class="map-topbar">
+        <div class="map-title-block">
+          <span class="map-kicker">Route 19 · Last stop for 40 miles</span>
+          <h2 class="map-title">Coyote Flats</h2>
+          <span class="map-subtitle">Backroad gas &amp; service · Night shift</span>
+        </div>
+        <div class="map-actions"><button class="map-exit" id="return-to-menu" type="button">← Main menu</button></div>
+      </div>
+      <div class="map-objective">
+        <span class="map-objective-label" id="map-shift">Shift 1 · Clock in</span>
+        <span class="map-objective-text" id="map-objective-text">Head to the open bay at Motor Works.</span>
+        <span class="map-keys">WASD MOVE · CLICK + MOUSE LOOK · E USE · 1–3 SELECT TOOLS</span>
+      </div>
+      <div class="work-prompt" id="work-prompt" hidden>Press E to clock in at Motor Works</div>
+      <div class="toolbelt" role="group" aria-label="Collected repair tools">
+        <button class="tool-slot" type="button" data-tool="wrench" disabled aria-pressed="false">1 · Wrench</button>
+        <button class="tool-slot" type="button" data-tool="screwdriver" disabled aria-pressed="false">2 · Driver</button>
+        <button class="tool-slot" type="button" data-tool="hammer" disabled aria-pressed="false">3 · Hammer</button>
+      </div>
+      <div class="touch-controls" aria-label="Touch movement controls">
+        <button class="touch-key" type="button" data-direction="up" aria-label="Move up">↑</button>
+        <button class="touch-key" type="button" data-direction="left" aria-label="Move left">←</button>
+        <button class="touch-key" type="button" data-direction="down" aria-label="Move down">↓</button>
+        <button class="touch-key" type="button" data-direction="right" aria-label="Move right">→</button>
+      </div>
+    </div>
+  </section>
+
+  <dialog id="save-dialog" aria-labelledby="save-title">
+    <div class="dialog-content">
+      <div class="dialog-top">
+        <div><p class="dialog-eyebrow">Local profile</p><h2 class="dialog-title" id="save-title">Save file</h2></div>
+        <button class="close-button" type="button" aria-label="Close dialog">×</button>
+      </div>
+      <p class="dialog-copy">Your progress lives right here on this device. Pick up where the last shift left off.</p>
+      <div class="save-slot">
+        <div class="slot-info"><span class="slot-name">Slot 01 · Riley's Garage</span><span class="slot-meta" id="save-details">New game · Ready to begin</span></div>
+        <span class="slot-state" id="save-state">Empty</span>
+      </div>
+      <div class="dialog-actions">
+        <button class="action" type="button" data-close>Back</button>
+        <button class="action action-primary" id="save-now-button" type="button">Save now</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="settings-dialog" aria-labelledby="settings-title">
+    <div class="dialog-content">
+      <div class="dialog-top">
+        <div><p class="dialog-eyebrow">Make yourself at home</p><h2 class="dialog-title" id="settings-title">Settings</h2></div>
+        <button class="close-button" type="button" aria-label="Close dialog">×</button>
+      </div>
+      <div class="setting-row">
+        <label for="music-volume">Workshop radio</label><span class="setting-value" id="music-value">65%</span>
+        <input id="music-volume" type="range" min="0" max="100" value="65">
+      </div>
+      <div class="setting-row">
+        <label for="effects-volume">Shop sounds</label><span class="setting-value" id="effects-value">80%</span>
+        <input id="effects-volume" type="range" min="0" max="100" value="80">
+      </div>
+      <div class="setting-row">
+        <div class="setting-copy"><label for="music-toggle">Background music</label><span class="setting-state" id="music-state" aria-live="polite">Starting menu music</span></div>
+        <input class="toggle" id="music-toggle" type="checkbox" checked>
+      </div>
+      <div class="setting-row">
+        <label for="motion-toggle">Reduced motion</label><input class="toggle" id="motion-toggle" type="checkbox">
+      </div>
+      <div class="dialog-actions"><button class="action action-primary" type="button" data-close>Done</button></div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <audio id="menu-track" loop preload="none"><source src="assets/audio/night-shift-menu.wav" type="audio/wav"></audio>
+  <audio id="game-track" loop preload="none"><source src="assets/audio/bay-three-loop.wav" type="audio/wav"></audio>
+
+  <script type="module">
+    import * as THREE from "three";
+
+    const saveKey = "second-shift-save";
+    const settingsKey = "second-shift-settings";
+    const appearanceKey = "second-shift-appearance";
+    const musicKey = "second-shift-music-enabled";
+    const menuScreen = document.querySelector(".workshop");
+    const gameScreen = document.querySelector("#game-screen");
+    const gameCanvas = document.querySelector("#game-canvas");
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color("#b99665");
+    scene.fog = new THREE.Fog("#b99665", 92, 175);
+    const camera = new THREE.PerspectiveCamera(44, window.innerWidth / window.innerHeight, .1, 240);
+    camera.rotation.order = "YXZ";
+    scene.add(camera);
+    const renderer = new THREE.WebGLRenderer({ canvas: gameCanvas, antialias: true, powerPreference: "high-performance" });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight, false);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
+    const world = new THREE.Group();
+    scene.add(world);
+    const saveDialog = document.querySelector("#save-dialog");
+    const settingsDialog = document.querySelector("#settings-dialog");
+    const toast = document.querySelector("#toast");
+    const audioTracks = { menu: document.querySelector("#menu-track"), game: document.querySelector("#game-track") };
+    const musicToggle = document.querySelector("#music-toggle");
+    const musicState = document.querySelector("#music-state");
+    let musicEnabled = localStorage.getItem(musicKey) !== "false";
+    let activeTrack = "menu";
+    let mapActive = false;
+    let mapFrame = 0;
+    let previousFrame = 0;
+    let clockedIn = false;
+    let garageOpen = false;
+    let selectedTool = null;
+    let cameraYaw = 0;
+    let cameraPitch = 0;
+    let roadCurve = null;
+    let touchLookPointer = null;
+    const pressedKeys = new Set();
+    const garageDoors = [];
+    const traffic = [];
+    const garageSwitchPosition = { x: -6.6, z: 2.55 };
+    const toolSpecs = [
+      { id: "wrench", label: "Wrench", x: -20.4, z: -14.45 },
+      { id: "screwdriver", label: "Driver", x: -18, z: -14.45 },
+      { id: "hammer", label: "Hammer", x: -15.6, z: -14.45 },
+    ];
+    const toolItems = new Map();
+    const heldTools = new Map();
+    const toolInventory = new Set();
+    const repairsDone = new Set();
+    const toolSlots = [...document.querySelectorAll(".tool-slot")];
+    const repairTasks = {
+      wrench: "tightened the wheel lugs",
+      screwdriver: "tested the battery terminals",
+      hammer: "straightened the fender",
+    };
+    const mechanic = { x: -17, z: 5 };
+    const mechanicGroup = new THREE.Group();
+    const mechanicCoatMaterial = new THREE.MeshStandardMaterial({ color: "#758252", roughness: .8 });
+    const garageSwitchMaterial = new THREE.MeshStandardMaterial({ color: "#a84431", emissive: "#50150e", emissiveIntensity: .8 });
+    let mechanicCoat = "#758252";
+    let garageSwitchButton = null;
+    let workCarGroup = null;
+    let workCarMaterial = null;
+    let workCarDamage = null;
+    let batteryTerminalMaterial = null;
+    let toastTimer;
+
+    musicToggle.checked = musicEnabled;
+
+    function updateMusicControl() {
+      const isPlaying = Object.values(audioTracks).some((track) => !track.paused);
+      musicState.textContent = isPlaying ? (activeTrack === "menu" ? "Menu music playing" : "Shop-floor music playing") : musicEnabled ? "Waiting for playback" : "Music off";
+    }
+
+    function playTrack(name) {
+      activeTrack = name;
+      Object.values(audioTracks).forEach((track) => track.pause());
+      if (!musicEnabled) {
+        updateMusicControl();
+        return;
+      }
+      const track = audioTracks[name];
+      track.volume = Number(document.querySelector("#music-volume").value) / 100;
+      track.play().then(updateMusicControl).catch(updateMusicControl);
+      updateMusicControl();
+    }
+
+    function resumeMusic() {
+      if (musicEnabled && Object.values(audioTracks).every((track) => track.paused)) playTrack(activeTrack);
+    }
+
+    function drawMap() {
+      const bounds = gameCanvas.getBoundingClientRect();
+      if (!bounds.width || !bounds.height) return;
+      if (renderer.domElement.width !== Math.round(bounds.width * renderer.getPixelRatio()) || renderer.domElement.height !== Math.round(bounds.height * renderer.getPixelRatio())) {
+        renderer.setSize(bounds.width, bounds.height, false);
+        camera.aspect = bounds.width / bounds.height;
+        camera.fov = bounds.width < 700 ? 55 : 43;
+        camera.updateProjectionMatrix();
+      }
+      const portrait = bounds.width < 700;
+      camera.position.set(mechanic.x, 1.72, mechanic.z);
+      camera.rotation.set(cameraPitch, cameraYaw, 0, "YXZ");
+      renderer.render(scene, camera);
+    }
+
+    const worldMaterials = {
+      sand: new THREE.MeshStandardMaterial({ color: "#c4a06a", roughness: 1 }),
+      paleSand: new THREE.MeshStandardMaterial({ color: "#d0b47f", roughness: 1 }),
+      rock: new THREE.MeshStandardMaterial({ color: "#92754f", roughness: 1 }),
+      concrete: new THREE.MeshStandardMaterial({ color: "#898573", roughness: .94 }),
+      asphalt: new THREE.MeshStandardMaterial({ color: "#353a38", roughness: .96, side: THREE.DoubleSide }),
+      roadEdge: new THREE.MeshStandardMaterial({ color: "#8e7652", roughness: 1, side: THREE.DoubleSide }),
+      wall: new THREE.MeshStandardMaterial({ color: "#cfc1a0", roughness: .9 }),
+      roof: new THREE.MeshStandardMaterial({ color: "#3e4b40", roughness: .82 }),
+      roofTrim: new THREE.MeshStandardMaterial({ color: "#aa5439", roughness: .8 }),
+      dark: new THREE.MeshStandardMaterial({ color: "#242a27", roughness: .83 }),
+      metal: new THREE.MeshStandardMaterial({ color: "#9d9a87", metalness: .55, roughness: .45 }),
+      glass: new THREE.MeshStandardMaterial({ color: "#839a98", metalness: .25, roughness: .18 }),
+      pumpRed: new THREE.MeshStandardMaterial({ color: "#b94832", roughness: .62 }),
+      tires: new THREE.MeshStandardMaterial({ color: "#202321", roughness: 1 }),
+    };
+    let mapBuilt = false;
+    let pickupPosition = { x: -3, z: 12 };
+    let mechanicShirt = null;
+
+    function addBox(parent, width, height, depth, material, x, y, z, castShadow = true) {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), material);
+      mesh.position.set(x, y, z);
+      mesh.castShadow = castShadow;
+      mesh.receiveShadow = true;
+      parent.add(mesh);
+      return mesh;
+    }
+
+    function buildToolModel(id) {
+      const tool = new THREE.Group();
+      const steel = new THREE.MeshStandardMaterial({ color: "#a8a795", metalness: .72, roughness: .3 });
+      const grip = new THREE.MeshStandardMaterial({ color: id === "hammer" ? "#744b35" : "#a64c36", roughness: .7 });
+      if (id === "wrench") {
+        addBox(tool, .9, .12, .12, steel, .03, 0, 0);
+        addBox(tool, .35, .15, .14, grip, -.28, 0, 0);
+        addBox(tool, .14, .3, .13, steel, .39, .17, 0);
+        addBox(tool, .14, .3, .13, steel, .39, -.17, 0);
+      } else if (id === "screwdriver") {
+        const handle = new THREE.Mesh(new THREE.CylinderGeometry(.12, .17, .38, 10), grip);
+        handle.rotation.z = Math.PI / 2;
+        handle.position.x = -.18;
+        tool.add(handle);
+        const shaft = new THREE.Mesh(new THREE.CylinderGeometry(.035, .035, .55, 8), steel);
+        shaft.rotation.z = Math.PI / 2;
+        shaft.position.x = .28;
+        tool.add(shaft);
+        addBox(tool, .12, .06, .07, steel, .58, 0, 0);
+      } else {
+        const handle = new THREE.Mesh(new THREE.CylinderGeometry(.055, .07, .76, 8), grip);
+        handle.position.y = -.08;
+        tool.add(handle);
+        addBox(tool, .48, .24, .25, steel, 0, .38, 0);
+      }
+      return tool;
+    }
+
+    function refreshToolbelt() {
+      for (const slot of toolSlots) {
+        const owned = toolInventory.has(slot.dataset.tool);
+        slot.disabled = !owned;
+        slot.setAttribute("aria-pressed", String(selectedTool === slot.dataset.tool));
+        const held = heldTools.get(slot.dataset.tool);
+        if (held) held.visible = selectedTool === slot.dataset.tool;
+      }
+    }
+
+    function selectTool(id) {
+      if (!toolInventory.has(id)) {
+        showToast(`Find the ${id} at the workbench first`);
+        return;
+      }
+      selectedTool = id;
+      refreshToolbelt();
+      showToast(`${id[0].toUpperCase()}${id.slice(1)} selected`);
+    }
+
+    function addGroundPlane(width, depth, material, x, z, y = .04) {
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, depth), material);
+      mesh.rotation.x = -Math.PI / 2;
+      mesh.position.set(x, y, z);
+      mesh.receiveShadow = true;
+      world.add(mesh);
+      return mesh;
+    }
+
+    function addSign(title, subtitle, x, y, z, width, height, background = "#26332c") {
+      const signCanvas = document.createElement("canvas");
+      signCanvas.width = 768;
+      signCanvas.height = 192;
+      const context = signCanvas.getContext("2d");
+      context.fillStyle = background;
+      context.fillRect(0, 0, signCanvas.width, signCanvas.height);
+      context.strokeStyle = "#d9c99d";
+      context.lineWidth = 8;
+      context.strokeRect(10, 10, signCanvas.width - 20, signCanvas.height - 20);
+      context.fillStyle = "#f0dfb5";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.font = "bold 74px 'Barlow Condensed', sans-serif";
+      context.fillText(title, signCanvas.width / 2, subtitle ? 78 : 99);
+      if (subtitle) {
+        context.font = "600 31px 'DM Sans', sans-serif";
+        context.fillText(subtitle, signCanvas.width / 2, 145);
+      }
+      const texture = new THREE.CanvasTexture(signCanvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      const sign = new THREE.Mesh(
+        new THREE.PlaneGeometry(width, height),
+        new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide })
+      );
+      sign.position.set(x, y, z);
+      world.add(sign);
+      return sign;
+    }
+
+    function addRibbon(curve, width, material, height) {
+      const segments = 180;
+      const positions = [];
+      const indices = [];
+      for (let index = 0; index <= segments; index++) {
+        const along = index / segments;
+        const point = curve.getPointAt(along);
+        const tangent = curve.getTangentAt(along).normalize();
+        const offsetX = -tangent.z * width / 2;
+        const offsetZ = tangent.x * width / 2;
+        positions.push(point.x + offsetX, height, point.z + offsetZ, point.x - offsetX, height, point.z - offsetZ);
+        if (index < segments) {
+          const first = index * 2;
+          indices.push(first, first + 2, first + 1, first + 1, first + 2, first + 3);
+        }
+      }
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+      geometry.setIndex(indices);
+      geometry.computeVertexNormals();
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.receiveShadow = true;
+      world.add(mesh);
+    }
+
+    function buildRoad() {
+      const points = [
+        new THREE.Vector3(-74, 0, 23), new THREE.Vector3(-42, 0, 20),
+        new THREE.Vector3(-14, 0, 24), new THREE.Vector3(14, 0, 22),
+        new THREE.Vector3(42, 0, 16), new THREE.Vector3(76, 0, 18),
+      ];
+      roadCurve = new THREE.CatmullRomCurve3(points);
+      addRibbon(roadCurve, 17, worldMaterials.roadEdge, .09);
+      addRibbon(roadCurve, 14, worldMaterials.asphalt, .14);
+      for (let distance = .02; distance < .98; distance += .055) {
+        const point = roadCurve.getPointAt(distance);
+        const tangent = roadCurve.getTangentAt(distance);
+        const dash = addBox(world, 2.1, .035, .17, new THREE.MeshStandardMaterial({ color: "#cfb978", roughness: .8 }), point.x, .17, point.z, false);
+        dash.rotation.y = -Math.atan2(tangent.z, tangent.x);
+      }
+      addSign("OLD ROUTE 19", "COYOTE FLATS", 34, 4.2, 16, 5.6, 1.4, "#344039");
+      addBox(world, .3, 4.3, .3, worldMaterials.roofTrim, 34, 2.1, 16);
+      buildTraffic();
+    }
+
+    function createTrafficCar(color, start, speed, direction) {
+      const car = new THREE.Group();
+      const bodyMaterial = new THREE.MeshStandardMaterial({ color, roughness: .52, metalness: .12 });
+      addBox(car, 2.25, .75, 4.3, bodyMaterial, 0, .88, 0);
+      addBox(car, 1.9, .82, 2.15, bodyMaterial, 0, 1.56, -.35);
+      addBox(car, 1.72, .57, .055, worldMaterials.glass, 0, 1.62, -1.44, false);
+      addBox(car, 1.72, .53, .055, worldMaterials.glass, 0, 1.6, .76, false);
+      addBox(car, .42, .2, .08, new THREE.MeshStandardMaterial({ color: "#f3dfa6", emissive: "#b48b45", emissiveIntensity: .5 }), -.72, .88, -2.17, false);
+      addBox(car, .42, .2, .08, worldMaterials.roofTrim, .72, .88, -2.17, false);
+      for (const x of [-1.13, 1.13]) {
+        for (const z of [-1.42, 1.42]) {
+          const wheel = new THREE.Mesh(new THREE.CylinderGeometry(.38, .38, .2, 14), worldMaterials.tires);
+          wheel.rotation.z = Math.PI / 2;
+          wheel.position.set(x, .48, z);
+          wheel.castShadow = true;
+          car.add(wheel);
+        }
+      }
+      world.add(car);
+      traffic.push({ car, distance: start, speed, direction });
+    }
+
+    function buildTraffic() {
+      createTrafficCar("#758252", .17, .028, 1);
+      createTrafficCar("#b94d38", .57, .036, -1);
+      createTrafficCar("#d1c29e", .83, .024, 1);
+    }
+
+    function buildCactus(x, z, size = 1) {
+      const cactus = new THREE.Group();
+      cactus.position.set(x, 0, z);
+      cactus.scale.setScalar(size);
+      const green = new THREE.MeshStandardMaterial({ color: "#566449", roughness: .92 });
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(.34, .48, 3.3, 8), green);
+      trunk.position.y = 1.65;
+      trunk.castShadow = true;
+      cactus.add(trunk);
+      const armA = new THREE.Mesh(new THREE.CylinderGeometry(.2, .24, 1.45, 7), green);
+      armA.position.set(-.68, 1.25, 0);
+      armA.rotation.z = Math.PI / 2;
+      cactus.add(armA);
+      const armB = new THREE.Mesh(new THREE.CylinderGeometry(.17, .22, 1.15, 7), green);
+      armB.position.set(.54, 2.05, 0);
+      armB.rotation.z = Math.PI / 2;
+      cactus.add(armB);
+      const capA = new THREE.Mesh(new THREE.CylinderGeometry(.21, .21, .18, 7), green);
+      capA.position.set(-1.19, 1.25, 0);
+      cactus.add(capA);
+      const capB = new THREE.Mesh(new THREE.CylinderGeometry(.18, .18, .18, 7), green);
+      capB.position.set(1.05, 2.05, 0);
+      cactus.add(capB);
+      world.add(cactus);
+    }
+
+    function buildPickup() {
+      const pickup = new THREE.Group();
+      pickup.position.set(pickupPosition.x, 0, pickupPosition.z);
+      addBox(pickup, 2.5, .74, 4.5, new THREE.MeshStandardMaterial({ color: "#99422f", roughness: .64 }), 0, 1, 0);
+      addBox(pickup, 2.18, .88, 1.82, new THREE.MeshStandardMaterial({ color: "#b85d42", roughness: .5 }), 0, 1.75, -.72);
+      addBox(pickup, 2.02, .58, .045, worldMaterials.glass, 0, 1.81, -1.66, false);
+      addBox(pickup, 2.02, .5, .045, worldMaterials.glass, 0, 1.78, .2, false);
+      addBox(pickup, 2.12, .12, 1.2, worldMaterials.metal, 0, .68, 1.55);
+      for (const x of [-1.2, 1.2]) {
+        for (const z of [-1.45, 1.48]) {
+          const wheel = new THREE.Mesh(new THREE.CylinderGeometry(.43, .43, .24, 16), worldMaterials.tires);
+          wheel.rotation.z = Math.PI / 2;
+          wheel.position.set(x, .49, z);
+          wheel.castShadow = true;
+          pickup.add(wheel);
+        }
+      }
+      world.add(pickup);
+    }
+
+    function buildGarageInterior() {
+      addBox(world, 26, .18, 17, worldMaterials.concrete, -18, .42, -7, false);
+      addBox(world, 12, .85, 1.1, worldMaterials.roofTrim, -18, 1.2, -14.2);
+      for (const x of [-23.3, -12.7]) addBox(world, .32, 1.05, .34, worldMaterials.dark, x, .55, -14.2);
+      addBox(world, 13, 2.35, .18, worldMaterials.roof, -18, 4, -15.32);
+      addSign("BAY 01", "TOOLS · PARTS · SERVICE", -18, 4, -15.2, 9.2, 1.7, "#344137");
+      addBox(world, 4.4, 1.4, .8, worldMaterials.roofTrim, -27.4, 1.1, -11.2);
+      addBox(world, 5.1, .28, 1.1, worldMaterials.metal, -27.4, 1.95, -11.2);
+      for (let drawer = 0; drawer < 3; drawer++) addBox(world, 3.7, .07, .05, worldMaterials.metal, -27.4, .72 + drawer * .34, -10.76, false);
+      addBox(world, 8.3, 1.08, 1.1, worldMaterials.dark, -18, 1.17, -14.58);
+      addBox(world, 9, .17, 1.28, worldMaterials.roofTrim, -18, 1.78, -14.58);
+      for (const spec of toolSpecs) {
+        const item = buildToolModel(spec.id);
+        item.position.set(spec.x, 1.94, spec.z);
+        item.scale.setScalar(.76);
+        world.add(item);
+        toolItems.set(spec.id, item);
+      }
+      for (let tool = 0; tool < 7; tool++) {
+        addBox(world, .12, .92 - (tool % 3) * .12, .1, worldMaterials.metal, -21 + tool * 1, 3.1, -15.05, false);
+        addBox(world, .52, .1, .13, worldMaterials.metal, -21 + tool * 1, 3.48, -15.02, false);
+      }
+      for (const x of [-24.5, -11.5]) {
+        addBox(world, .42, 4.6, .5, worldMaterials.roofTrim, x, 2.55, -6.2);
+        addBox(world, .5, .28, 5.7, worldMaterials.roofTrim, x, 4.95, -6.2);
+        addBox(world, 4.1, .2, 1.2, worldMaterials.metal, x, .62, -6.2);
+      }
+      workCarGroup = new THREE.Group();
+      workCarMaterial = new THREE.MeshStandardMaterial({ color: "#99422f", metalness: .18, roughness: .48 });
+      addBox(workCarGroup, 2.3, .72, 4.2, workCarMaterial, -18, 1.15, -6.4);
+      addBox(workCarGroup, 1.95, .9, 1.9, workCarMaterial, -18, 1.82, -6.75);
+      addBox(workCarGroup, 1.7, .6, .06, worldMaterials.glass, -18, 1.88, -7.72, false);
+      workCarDamage = addBox(workCarGroup, .8, .06, .7, new THREE.MeshStandardMaterial({ color: "#4c3b32", roughness: 1 }), -18.35, 1.55, -8.43, false);
+      batteryTerminalMaterial = new THREE.MeshStandardMaterial({ color: "#c74d37", emissive: "#7d1e11", emissiveIntensity: .55, roughness: .48 });
+      addBox(workCarGroup, .54, .23, .66, worldMaterials.dark, -17.35, 1.58, -7.45);
+      addBox(workCarGroup, .12, .11, .12, batteryTerminalMaterial, -17.48, 1.75, -7.52);
+      for (const x of [-19.1, -16.9]) {
+        for (const z of [-7.7, -5.1]) {
+          const wheel = new THREE.Mesh(new THREE.CylinderGeometry(.39, .39, .2, 14), worldMaterials.tires);
+          wheel.rotation.z = Math.PI / 2;
+          wheel.position.set(x, .68, z);
+          workCarGroup.add(wheel);
+        }
+      }
+      world.add(workCarGroup);
+      for (const x of [-30.2, -5.8]) {
+        addBox(world, 2.4, 2.2, 1.5, worldMaterials.dark, x, 1.2, -4.2);
+        addBox(world, 2.5, .17, 1.65, worldMaterials.metal, x, 2.37, -4.2);
+      }
+      for (let tire = 0; tire < 3; tire++) {
+        const stack = new THREE.Mesh(new THREE.TorusGeometry(.59, .22, 8, 18), worldMaterials.tires);
+        stack.position.set(-30, .72 + tire * .43, -8.8);
+        stack.rotation.x = Math.PI / 2;
+        world.add(stack);
+      }
+      for (const x of [-25, -11]) {
+        const lamp = new THREE.PointLight("#f8d993", 15, 14, 1.8);
+        lamp.position.set(x, 5.3, -2.2);
+        world.add(lamp);
+        addBox(world, 2.3, .16, .5, new THREE.MeshStandardMaterial({ color: "#f4d98c", emissive: "#f1bd68", emissiveIntensity: 1.15 }), x, 6.3, -2.5, false);
+      }
+      for (const spec of toolSpecs) {
+        const held = buildToolModel(spec.id);
+        held.position.set(.42, -.43, -.9);
+        held.rotation.set(.12, .15, -.2);
+        held.scale.setScalar(.48);
+        camera.add(held);
+        heldTools.set(spec.id, held);
+      }
+      refreshToolbelt();
+    }
+
+    function buildStation() {
+      addGroundPlane(150, 130, worldMaterials.sand, 0, 0, -.16);
+      addGroundPlane(52, 28, worldMaterials.concrete, -4, 10, .015);
+
+      const mesaMaterial = new THREE.MeshStandardMaterial({ color: "#957a54", roughness: 1 });
+      for (const [x, z, width, height] of [[-52, -38, 18, 11], [-25, -46, 24, 15], [8, -48, 19, 12], [44, -42, 26, 16], [67, -28, 18, 10]]) {
+        const mesa = new THREE.Mesh(new THREE.CylinderGeometry(width * .34, width, height, 5), mesaMaterial);
+        mesa.position.set(x, height / 2 - .2, z);
+        mesa.rotation.y = .22;
+        mesa.castShadow = true;
+        world.add(mesa);
+      }
+
+      const apron = addGroundPlane(48, 18, worldMaterials.concrete, 2, 19, .025);
+      apron.rotation.z = -.015;
+      buildRoad();
+
+      addBox(world, 27, .45, 18, worldMaterials.concrete, -18, .25, -7);
+      for (const x of [-31.25, -4.75]) addBox(world, .5, 6.2, 18, worldMaterials.wall, x, 3.35, -7);
+      addBox(world, 27, 6.2, .5, worldMaterials.wall, -18, 3.35, -15.75);
+      for (const x of [-30.05, -5.95]) addBox(world, 2.9, 6.2, .5, worldMaterials.wall, x, 3.35, 2);
+      addBox(world, 6.8, 6.2, .5, worldMaterials.wall, -18, 3.35, 2);
+      addBox(world, 27, 1.6, .5, worldMaterials.wall, -18, 6.1, 2);
+      addBox(world, 29, .85, 20, worldMaterials.roof, -18, 7.25, -7);
+      addBox(world, 29, .28, .6, worldMaterials.roofTrim, -18, 6.83, 3.25);
+      for (const doorX of [-25, -11]) {
+        const door = new THREE.Group();
+        addBox(door, 7.3, 4.7, .14, worldMaterials.dark, 0, 0, 0);
+        for (let slat = 0; slat < 7; slat++) addBox(door, 7.1, .055, .08, worldMaterials.metal, 0, -2 + slat * .62, .1, false);
+        door.position.set(doorX, 2.55, 2.18);
+        world.add(door);
+        garageDoors.push({ group: door, startY: 2.55, offset: 0 });
+        addBox(world, 7.8, .22, .42, worldMaterials.roofTrim, doorX, 5.12, 2.14);
+        addBox(world, 2.4, .2, .26, new THREE.MeshStandardMaterial({ color: "#e1c87a", emissive: "#ad7b25", emissiveIntensity: .65 }), doorX, 5.43, 2.1, false);
+      }
+      buildGarageInterior();
+      addSign("MOTOR WORKS", "REPAIRS · OPEN LATE", -18, 6.14, 2.18, 12.8, 2.1);
+      buildGarageSwitch();
+      for (const windowX of [-29, -7]) addBox(world, 2.1, 1.35, .08, worldMaterials.glass, windowX, 5.53, 2.12, false);
+
+      addBox(world, 14, 5.5, 11, worldMaterials.wall, 10, 2.75, -7.5);
+      addBox(world, 14.8, .72, 11.8, worldMaterials.roofTrim, 10, 5.82, -7.5);
+      addBox(world, 3.4, 3.2, .16, worldMaterials.roof, 7.4, 1.65, -1.91);
+      addBox(world, 4.4, 2.8, .08, worldMaterials.glass, 13.7, 3.3, -1.91, false);
+      addBox(world, 4.4, 2.8, .08, worldMaterials.glass, 18.3, 3.3, -1.91, false);
+      addSign("COYOTE FLATS", "GAS · ICE · SERVICE", 10, 4.78, -1.87, 9.5, 1.6, "#803f30");
+
+      for (const [x, z] of [[.7, -.7], [19.3, -.7], [.7, 8.6], [19.3, 8.6]]) {
+        addBox(world, .35, 5.15, .35, worldMaterials.roofTrim, x, 2.57, z);
+      }
+      addBox(world, 21, .6, 11, worldMaterials.roofTrim, 10, 5.2, 4);
+      addBox(world, 20.2, .2, 10.2, new THREE.MeshStandardMaterial({ color: "#e4d5b0", roughness: .72 }), 10, 4.82, 4);
+      for (const pumpX of [6, 14]) {
+        addBox(world, 1.55, .22, 1.65, worldMaterials.dark, pumpX, .17, 5.6);
+        addBox(world, .88, 1.75, .82, worldMaterials.pumpRed, pumpX, 1.08, 5.6);
+        addBox(world, .66, .36, .08, worldMaterials.glass, pumpX, 1.48, 6.03, false);
+        addBox(world, .24, .17, .09, worldMaterials.dark, pumpX, 1.49, 6.08, false);
+        const hose = new THREE.Mesh(new THREE.TorusGeometry(.28, .045, 6, 14, Math.PI), worldMaterials.dark);
+        hose.position.set(pumpX + .46, .72, 5.95);
+        hose.rotation.z = Math.PI / 2;
+        world.add(hose);
+      }
+
+      addBox(world, .42, 5.5, .42, worldMaterials.roofTrim, 25, 2.75, -5.5);
+      addSign("GAS", "NEXT EXIT 40 MI", 25, 5.05, -5.25, 5.8, 2.1, "#26342d");
+      for (const [x, z, scale] of [[-40, -8, 1.3], [-40, 17, 1.1], [34, -20, 1.35], [43, 6, 1.1], [-43, 38, 1.5], [37, 39, 1.25], [22, -35, .9]]) buildCactus(x, z, scale);
+
+      const pebbleGeometry = new THREE.DodecahedronGeometry(.34, 0);
+      const pebbleMaterial = new THREE.MeshStandardMaterial({ color: "#876d49", roughness: 1 });
+      const pebbles = new THREE.InstancedMesh(pebbleGeometry, pebbleMaterial, 175);
+      const pebbleTransform = new THREE.Object3D();
+      for (let index = 0; index < 175; index++) {
+        const x = ((index * 37) % 92) - 46;
+        const z = ((index * 53) % 84) - 42;
+        if (x > -35 && x < 28 && z > -21 && z < 25) pebbleTransform.scale.setScalar(.001);
+        else pebbleTransform.scale.setScalar(.55 + (index % 4) * .15);
+        pebbleTransform.position.set(x, .13, z);
+        pebbleTransform.rotation.set(index * .08, index * .31, index * .12);
+        pebbleTransform.updateMatrix();
+        pebbles.setMatrixAt(index, pebbleTransform.matrix);
+      }
+      pebbles.receiveShadow = true;
+      world.add(pebbles);
+      buildPickup();
+    }
+
+    function buildGarageSwitch() {
+      const { x, z } = garageSwitchPosition;
+      addBox(world, .88, 1.22, .25, worldMaterials.dark, x, 1.47, z);
+      addBox(world, .68, .91, .07, worldMaterials.metal, x, 1.52, z + .17, false);
+      garageSwitchButton = addBox(world, .34, .3, .14, garageSwitchMaterial, x, 1.62, z + .24, false);
+      addBox(world, .11, .34, .09, worldMaterials.dark, x + .27, 1.36, z + .25, false);
+      addSign("BAY DOOR", "UP / DOWN", x, 2.36, z + .18, 2.2, .74, "#344137");
+    }
+
+    function buildMechanic() {
+      const skin = new THREE.MeshStandardMaterial({ color: "#dfbb92", roughness: .83 });
+      const trousers = new THREE.MeshStandardMaterial({ color: "#343831", roughness: .93 });
+      const cap = new THREE.MeshStandardMaterial({ color: "#383a31", roughness: .86 });
+      const boot = new THREE.MeshStandardMaterial({ color: "#292924", roughness: .92 });
+      const body = new THREE.Mesh(new THREE.CapsuleGeometry(.42, .67, 4, 8), mechanicCoatMaterial);
+      body.position.y = 1.25;
+      body.castShadow = true;
+      mechanicGroup.add(body);
+      mechanicShirt = body;
+      for (const x of [-.19, .19]) {
+        addBox(mechanicGroup, .24, .72, .3, trousers, x, .45, 0);
+        addBox(mechanicGroup, .29, .17, .46, boot, x, .12, .07);
+      }
+      const head = new THREE.Mesh(new THREE.SphereGeometry(.29, 16, 12), skin);
+      head.position.y = 2.08;
+      head.castShadow = true;
+      mechanicGroup.add(head);
+      addBox(mechanicGroup, .68, .16, .58, cap, 0, 2.35, 0);
+      const brim = addBox(mechanicGroup, .72, .06, .36, cap, 0, 2.27, .23);
+      brim.castShadow = false;
+      mechanicGroup.position.set(mechanic.x, 0, mechanic.z);
+      mechanicGroup.visible = false;
+      world.add(mechanicGroup);
+      buildFirstPersonHands();
+    }
+
+    function buildFirstPersonHands() {
+      const skin = new THREE.MeshStandardMaterial({ color: "#dfbb92", roughness: .83 });
+      for (const side of [-1, 1]) {
+        const sleeve = new THREE.Mesh(new THREE.CapsuleGeometry(.16, .53, 4, 8), mechanicCoatMaterial);
+        sleeve.position.set(side * .37, -.47, -.72);
+        sleeve.rotation.z = side * -.2;
+        camera.add(sleeve);
+        const hand = new THREE.Mesh(new THREE.SphereGeometry(.13, 12, 10), skin);
+        hand.position.set(side * .37, -.57, -1.12);
+        camera.add(hand);
+      }
+    }
+
+    function buildWorld() {
+      if (mapBuilt) return;
+      mapBuilt = true;
+      scene.add(new THREE.HemisphereLight("#f5dfba", "#51432f", 2.05));
+      const sun = new THREE.DirectionalLight("#ffe0a6", 3.3);
+      sun.position.set(-28, 48, 26);
+      sun.castShadow = true;
+      sun.shadow.mapSize.set(2048, 2048);
+      sun.shadow.camera.left = -70;
+      sun.shadow.camera.right = 70;
+      sun.shadow.camera.top = 70;
+      sun.shadow.camera.bottom = -70;
+      sun.shadow.bias = -.00035;
+      scene.add(sun);
+      const shopGlow = new THREE.PointLight("#f1bd68", 28, 29, 1.7);
+      shopGlow.position.set(-18, 5.2, 3.4);
+      scene.add(shopGlow);
+      const stationGlow = new THREE.PointLight("#ffca78", 52, 31, 1.6);
+      stationGlow.position.set(10, 5.8, 3.8);
+      scene.add(stationGlow);
+      buildStation();
+      buildMechanic();
+    }
+
+    function animateWorld(elapsed) {
+      const doorTarget = garageOpen ? 2.85 : 0;
+      for (const door of garageDoors) {
+        door.offset += (doorTarget - door.offset) * Math.min(1, elapsed * 3.2);
+        door.group.position.y = door.startY + door.offset;
+      }
+      for (const vehicle of traffic) {
+        vehicle.distance = (vehicle.distance + vehicle.speed * elapsed) % 1;
+        const along = vehicle.direction > 0 ? vehicle.distance : 1 - vehicle.distance;
+        const point = roadCurve.getPointAt(along);
+        const tangent = roadCurve.getTangentAt(along);
+        const direction = vehicle.direction;
+        vehicle.car.position.set(point.x, .04, point.z);
+        vehicle.car.rotation.y = Math.atan2(-tangent.x * direction, -tangent.z * direction);
+      }
+    }
+
+    function doorsPassable() {
+      return garageOpen && garageDoors.length > 0 && garageDoors.every((door) => door.offset > 2.6);
+    }
+
+    function nearestUncollectedTool() {
+      return toolSpecs
+        .filter((tool) => !toolInventory.has(tool.id))
+        .map((tool) => ({ tool, distance: Math.hypot(mechanic.x - tool.x, mechanic.z - tool.z) }))
+        .sort((first, second) => first.distance - second.distance)[0];
+    }
+
+    function updateInteractionPrompt() {
+      const prompt = document.querySelector("#work-prompt");
+      const switchDistance = Math.hypot(mechanic.x - garageSwitchPosition.x, mechanic.z - garageSwitchPosition.z);
+      const clockDistance = Math.hypot(mechanic.x + 17, mechanic.z - 5);
+      const carDistance = Math.hypot(mechanic.x + 18, mechanic.z + 6.4);
+      const availableTool = nearestUncollectedTool();
+      let message = "";
+      if (switchDistance < 3.2) message = `E · ${garageOpen ? "CLOSE" : "OPEN"} BAY DOORS`;
+      else if (!clockedIn && clockDistance < 4.5) message = "E · CLOCK IN AT MOTOR WORKS";
+      else if (clockedIn && !doorsPassable() && clockDistance < 12) message = "GO TO THE WALL SWITCH TO OPEN THE BAY";
+      else if (clockedIn && doorsPassable() && availableTool && availableTool.distance < 2.8) message = `E · PICK UP ${availableTool.tool.label.toUpperCase()}`;
+      else if (clockedIn && doorsPassable() && carDistance < 4.8) message = selectedTool ? `E · USE ${selectedTool.toUpperCase()} ON BAY 01` : "SELECT A TOOL TO WORK ON BAY 01";
+      prompt.hidden = !message;
+      if (message) prompt.textContent = message;
+    }
+
+    function toggleGarageDoors() {
+      garageOpen = !garageOpen;
+      garageSwitchMaterial.color.set(garageOpen ? "#758252" : "#a84431");
+      garageSwitchMaterial.emissive.set(garageOpen ? "#40501f" : "#50150e");
+      garageSwitchButton.position.y = garageOpen ? 1.48 : 1.62;
+      showToast(garageOpen ? "Wall switch engaged · Bay doors opening" : "Wall switch engaged · Bay doors closing");
+      if (clockedIn) document.querySelector("#map-objective-text").textContent = garageOpen ? "Collect the wrench, driver, and hammer from the back workbench." : "Open the bay doors from the wall switch.";
+    }
+
+    function clockIn() {
+      clockedIn = true;
+      document.querySelector("#map-shift").textContent = "On the clock · Bay 01";
+      document.querySelector("#map-objective-text").textContent = "Open the bay using the wall switch beside the garage.";
+      const save = JSON.parse(localStorage.getItem(saveKey) || "null");
+      if (save) {
+        save.clockedIn = true;
+        save.savedAt = new Date().toISOString();
+        localStorage.setItem(saveKey, JSON.stringify(save));
+        refreshSave();
+      }
+      showToast("Clocked in · Bay 01 is waiting");
+    }
+
+    function repairCar() {
+      if (!clockedIn) {
+        showToast("Clock in at Motor Works before starting a repair");
+        return;
+      }
+      if (!doorsPassable()) {
+        showToast("Open the garage from the wall switch first");
+        return;
+      }
+      if (!selectedTool) {
+        showToast("Collect a tool from the back workbench first");
+        return;
+      }
+      if (repairsDone.has(selectedTool)) {
+        showToast(`The ${selectedTool} job is already done`);
+        return;
+      }
+      repairsDone.add(selectedTool);
+      if (selectedTool === "wrench") workCarMaterial.color.set("#ae6046");
+      if (selectedTool === "screwdriver") {
+        batteryTerminalMaterial.color.set("#78a35a");
+        batteryTerminalMaterial.emissive.set("#31551a");
+      }
+      if (selectedTool === "hammer") {
+        workCarDamage.visible = false;
+        workCarMaterial.color.set("#c16a4b");
+      }
+      if (repairsDone.size === toolSpecs.length) {
+        document.querySelector("#map-objective-text").textContent = "Bay 01 complete · The customer car is road-ready.";
+        document.querySelector("#map-shift").textContent = "Service complete · Bay 01";
+        const save = JSON.parse(localStorage.getItem(saveKey) || "null");
+        if (save) {
+          save.completedRepairs = (save.completedRepairs || 0) + 1;
+          save.savedAt = new Date().toISOString();
+          localStorage.setItem(saveKey, JSON.stringify(save));
+          refreshSave();
+        }
+        showToast("Repair complete · Bay 01 is back on the road");
+      } else {
+        document.querySelector("#map-objective-text").textContent = `Bay 01 · ${repairsDone.size}/3 repairs complete. Keep working on the car.`;
+        showToast(`You ${repairTasks[selectedTool]} · ${repairsDone.size}/3 done`);
+      }
+    }
+
+    function interactAtShop() {
+      const switchDistance = Math.hypot(mechanic.x - garageSwitchPosition.x, mechanic.z - garageSwitchPosition.z);
+      if (switchDistance < 3.2) {
+        toggleGarageDoors();
+        return;
+      }
+      const clockDistance = Math.hypot(mechanic.x + 17, mechanic.z - 5);
+      if (!clockedIn && clockDistance < 4.5) {
+        clockIn();
+        return;
+      }
+      if (!clockedIn) {
+        showToast("Clock in at the Motor Works bay first");
+        return;
+      }
+      const availableTool = nearestUncollectedTool();
+      if (availableTool && availableTool.distance < 2.8) {
+        if (!doorsPassable()) {
+          showToast("Open the garage from the wall switch to reach the tools");
+          return;
+        }
+        toolInventory.add(availableTool.tool.id);
+        toolItems.get(availableTool.tool.id).visible = false;
+        if (!selectedTool) selectedTool = availableTool.tool.id;
+        refreshToolbelt();
+        const count = toolInventory.size;
+        document.querySelector("#map-objective-text").textContent = count === toolSpecs.length
+          ? "Use the tools on the damaged car in Bay 01."
+          : `Collected ${count}/${toolSpecs.length} tools · Check the workbench for more.`;
+        showToast(`${availableTool.tool.label} picked up · Press ${toolSpecs.findIndex((tool) => tool.id === availableTool.tool.id) + 1} to select`);
+        return;
+      }
+      const carDistance = Math.hypot(mechanic.x + 18, mechanic.z + 6.4);
+      if (carDistance < 4.8) {
+        repairCar();
+        return;
+      }
+      showToast("Move closer to the wall switch, workbench, or Bay 01 car");
+    }
+
+    function updateMap(timestamp) {
+      if (!mapActive) return;
+      const elapsed = previousFrame ? Math.min((timestamp - previousFrame) / 1000, .05) : 0;
+      previousFrame = timestamp;
+      let movementX = 0;
+      let movementY = 0;
+      if (pressedKeys.has("a") || pressedKeys.has("arrowleft")) movementX -= 1;
+      if (pressedKeys.has("d") || pressedKeys.has("arrowright")) movementX += 1;
+      if (pressedKeys.has("w") || pressedKeys.has("arrowup")) movementY -= 1;
+      if (pressedKeys.has("s") || pressedKeys.has("arrowdown")) movementY += 1;
+      const movementLength = Math.hypot(movementX, movementY) || 1;
+      const forward = -movementY;
+      const worldX = -Math.sin(cameraYaw) * forward + Math.cos(cameraYaw) * movementX;
+      const worldZ = -Math.cos(cameraYaw) * forward - Math.sin(cameraYaw) * movementX;
+      mechanic.x = Math.max(-49, Math.min(48, mechanic.x + worldX / movementLength * 7 * elapsed));
+      mechanic.z = Math.max(-28, Math.min(42, mechanic.z + worldZ / movementLength * 7 * elapsed));
+      mechanicGroup.position.set(mechanic.x, 0, mechanic.z);
+      const nearBay = Math.hypot(mechanic.x + 17, mechanic.z - 5) <= 7;
+      const workPrompt = document.querySelector("#work-prompt");
+      workPrompt.hidden = !nearBay;
+      if (nearBay) workPrompt.textContent = clockedIn ? "Press E to check the open bay" : "Press E to clock in at Motor Works";
+      animateWorld(elapsed);
+      drawMap();
+      mapFrame = window.requestAnimationFrame(updateMap);
+    }
+
+    function startMap() {
+      buildWorld();
+      mapActive = true;
+      previousFrame = 0;
+      drawMap();
+      mapFrame = window.requestAnimationFrame(updateMap);
+    }
+
+    function stopMap() {
+      mapActive = false;
+      pressedKeys.clear();
+      window.cancelAnimationFrame(mapFrame);
+      document.querySelector("#work-prompt").hidden = true;
+    }
+
+    window.addEventListener("keydown", (event) => {
+      if (!mapActive) return;
+      const key = event.key.toLowerCase();
+      if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright", "e"].includes(key)) event.preventDefault();
+      if (key === "e" && !event.repeat) interactAtShop();
+      pressedKeys.add(key);
+    });
+    window.addEventListener("keyup", (event) => pressedKeys.delete(event.key.toLowerCase()));
+    window.addEventListener("resize", drawMap);
+    gameCanvas.addEventListener("click", () => {
+      if (mapActive && !window.matchMedia("(pointer: coarse)").matches && document.pointerLockElement !== gameCanvas) gameCanvas.requestPointerLock();
+    });
+    document.addEventListener("pointerlockchange", () => gameScreen.classList.toggle("locked", document.pointerLockElement === gameCanvas));
+    document.addEventListener("mousemove", (event) => {
+      if (!mapActive || document.pointerLockElement !== gameCanvas) return;
+      cameraYaw -= event.movementX * .0024;
+      cameraPitch = Math.max(-.72, Math.min(.72, cameraPitch - event.movementY * .002));
+    });
+    gameCanvas.addEventListener("pointerdown", (event) => {
+      if (event.pointerType !== "touch") return;
+      touchLookPointer = { id: event.pointerId, x: event.clientX, y: event.clientY };
+      gameCanvas.setPointerCapture(event.pointerId);
+    });
+    gameCanvas.addEventListener("pointermove", (event) => {
+      if (!touchLookPointer || touchLookPointer.id !== event.pointerId) return;
+      cameraYaw -= (event.clientX - touchLookPointer.x) * .006;
+      cameraPitch = Math.max(-.72, Math.min(.72, cameraPitch - (event.clientY - touchLookPointer.y) * .004));
+      touchLookPointer.x = event.clientX;
+      touchLookPointer.y = event.clientY;
+    });
+    ["pointerup", "pointercancel"].forEach((eventName) => gameCanvas.addEventListener(eventName, () => { touchLookPointer = null; }));
+
+    document.querySelectorAll(".touch-key").forEach((button) => {
+      const direction = { up: "arrowup", down: "arrowdown", left: "arrowleft", right: "arrowright" }[button.dataset.direction];
+      button.addEventListener("pointerdown", (event) => { event.preventDefault(); pressedKeys.add(direction); });
+      ["pointerup", "pointercancel", "pointerleave"].forEach((eventName) => button.addEventListener(eventName, () => pressedKeys.delete(direction)));
+    });
+
+    musicToggle.addEventListener("change", () => {
+      musicEnabled = musicToggle.checked;
+      localStorage.setItem(musicKey, String(musicEnabled));
+      if (musicEnabled) playTrack(activeTrack);
+      else {
+        Object.values(audioTracks).forEach((track) => track.pause());
+        updateMusicControl();
+      }
+    });
+
+    playTrack("menu");
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(() => toast.classList.remove("show"), 2600);
+    }
+
+    function refreshSave() {
+      const save = JSON.parse(localStorage.getItem(saveKey) || "null");
+      document.querySelector("#save-hint").textContent = save ? "Continue" : "Slot 01";
+      document.querySelector("#save-state").textContent = save ? "Saved" : "Empty";
+      document.querySelector("#save-details").textContent = save
+        ? `Shift ${save.shift} · Last played ${new Date(save.savedAt).toLocaleDateString()}`
+        : "New game · Ready to begin";
+    }
+
+    document.querySelector("#play-button").addEventListener("click", () => {
+      playTrack("game");
+      const save = JSON.parse(localStorage.getItem(saveKey) || "null");
+      let currentSave;
+      if (save) {
+        save.shift += 1;
+        save.savedAt = new Date().toISOString();
+        localStorage.setItem(saveKey, JSON.stringify(save));
+        currentSave = save;
+      } else {
+        currentSave = { shift: 1, savedAt: new Date().toISOString() };
+        localStorage.setItem(saveKey, JSON.stringify(currentSave));
+      }
+      clockedIn = false;
+      document.querySelector("#map-shift").textContent = `Shift ${currentSave.shift} · Clock in`;
+      document.querySelector("#map-objective-text").textContent = "Head to the open bay at Motor Works.";
+      refreshSave();
+      menuScreen.hidden = true;
+      gameScreen.hidden = false;
+      startMap();
+    });
+
+    document.querySelector("#save-button").addEventListener("click", () => {
+      resumeMusic();
+      saveDialog.showModal();
+    });
+    document.querySelector("#settings-button").addEventListener("click", () => {
+      resumeMusic();
+      settingsDialog.showModal();
+    });
+
+    document.querySelector("#return-to-menu").addEventListener("click", () => {
+      stopMap();
+      gameScreen.hidden = true;
+      menuScreen.hidden = false;
+      playTrack("menu");
+    });
+
+    document.querySelector("#garage-action").addEventListener("click", (event) => {
+      garageOpen = !garageOpen;
+      event.currentTarget.textContent = garageOpen ? "Close garage" : "Open garage";
+      event.currentTarget.setAttribute("aria-pressed", String(garageOpen));
+      showToast(garageOpen ? "Garage doors opening" : "Garage doors closing");
+    });
+
+    document.querySelectorAll("dialog .close-button, dialog [data-close]").forEach((button) => {
+      button.addEventListener("click", () => button.closest("dialog").close());
+    });
+
+    document.querySelectorAll("dialog").forEach((dialog) => {
+      dialog.addEventListener("click", (event) => {
+        if (event.target === dialog) dialog.close();
+      });
+    });
+
+    document.querySelector("#save-now-button").addEventListener("click", () => {
+      const save = JSON.parse(localStorage.getItem(saveKey) || "null") || { shift: 0 };
+      save.savedAt = new Date().toISOString();
+      localStorage.setItem(saveKey, JSON.stringify(save));
+      refreshSave();
+      saveDialog.close();
+      showToast("Save file updated");
+    });
+
+    const customizeButton = document.querySelector("#customize-button");
+    const customizePanel = document.querySelector("#customize-panel");
+    customizeButton.addEventListener("click", () => {
+      resumeMusic();
+      const isOpen = customizeButton.getAttribute("aria-expanded") === "true";
+      customizeButton.setAttribute("aria-expanded", String(!isOpen));
+      customizePanel.hidden = isOpen;
+    });
+
+    const jacketColors = { olive: "#758252", rust: "#d97c51", navy: "#637984", charcoal: "#474b45" };
+    const appearance = JSON.parse(localStorage.getItem(appearanceKey) || "null");
+    if (appearance?.jacket && jacketColors[appearance.jacket]) {
+      mechanicCoat = jacketColors[appearance.jacket];
+      mechanicCoatMaterial.color.set(mechanicCoat);
+      document.querySelectorAll(".swatch").forEach((swatch) => {
+        swatch.setAttribute("aria-pressed", String(swatch.dataset.color === appearance.jacket));
+      });
+      document.querySelector(".character-preview").style.setProperty("--jacket-color", jacketColors[appearance.jacket]);
+      document.querySelector("#customize-note").textContent = `${appearance.jacket[0].toUpperCase()}${appearance.jacket.slice(1)} jacket selected. Your look is saved automatically.`;
+    }
+
+    document.querySelectorAll(".swatch").forEach((swatch) => {
+      swatch.addEventListener("click", () => {
+        const jacket = swatch.dataset.color;
+        mechanicCoat = jacketColors[jacket];
+        mechanicCoatMaterial.color.set(mechanicCoat);
+        document.querySelectorAll(".swatch").forEach((choice) => choice.setAttribute("aria-pressed", String(choice === swatch)));
+        document.querySelector(".character-preview").style.setProperty("--jacket-color", jacketColors[jacket]);
+        document.querySelector("#customize-note").textContent = `${jacket[0].toUpperCase()}${jacket.slice(1)} jacket selected. Your look is saved automatically.`;
+        localStorage.setItem(appearanceKey, JSON.stringify({ jacket }));
+      });
+    });
+
+    const settings = JSON.parse(localStorage.getItem(settingsKey) || "null");
+    if (settings) {
+      document.querySelector("#music-volume").value = settings.music;
+      document.querySelector("#effects-volume").value = settings.effects;
+      document.querySelector("#motion-toggle").checked = settings.reducedMotion;
+      document.body.classList.toggle("reduced-motion", settings.reducedMotion);
+      Object.values(audioTracks).forEach((track) => { track.volume = Number(settings.music) / 100; });
+    }
+
+    ["music-volume", "effects-volume"].forEach((id) => {
+      const slider = document.getElementById(id);
+      const value = document.getElementById(id.replace("-volume", "-value"));
+      slider.addEventListener("input", () => {
+        value.textContent = `${slider.value}%`;
+        if (id === "music-volume") Object.values(audioTracks).forEach((track) => { track.volume = Number(slider.value) / 100; });
+      });
+    });
+
+    document.querySelectorAll("#settings-dialog input").forEach((input) => {
+      input.addEventListener("change", () => {
+        const reducedMotion = document.querySelector("#motion-toggle").checked;
+        localStorage.setItem(settingsKey, JSON.stringify({
+          music: Number(document.querySelector("#music-volume").value),
+          effects: Number(document.querySelector("#effects-volume").value),
+          reducedMotion,
+        }));
+        document.body.classList.toggle("reduced-motion", reducedMotion);
+      });
+    });
+
+    refreshSave();
+  </script>
+</body>
+</html>
