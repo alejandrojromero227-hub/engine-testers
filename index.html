@@ -429,6 +429,7 @@
       user-select: none;
     }
     .touch-key:active { border-color: var(--lime); color: var(--lime); }
+    .touch-use { display: none; }
 
     @media (max-width: 640px) {
       .topbar-tools { gap: 10px; }
@@ -455,6 +456,7 @@
         gap: 4px;
         pointer-events: auto;
       }
+      .touch-use { position: absolute; bottom: 126px; left: 19px; display: grid; width: 76px; font-size: 10px; font-weight: 700; }
       .touch-key[data-direction="up"] { grid-column: 2; grid-row: 1; }
       .touch-key[data-direction="left"] { grid-column: 1; grid-row: 2; }
       .touch-key[data-direction="down"] { grid-column: 2; grid-row: 2; }
@@ -585,6 +587,7 @@
         <button class="tool-slot" type="button" data-tool="screwdriver" disabled aria-pressed="false">2 · Driver</button>
         <button class="tool-slot" type="button" data-tool="hammer" disabled aria-pressed="false">3 · Hammer</button>
       </div>
+      <button class="touch-key touch-use" id="touch-use" type="button" aria-label="Use or interact">USE</button>
       <div class="touch-controls" aria-label="Touch movement controls">
         <button class="touch-key" type="button" data-direction="up" aria-label="Move up">↑</button>
         <button class="touch-key" type="button" data-direction="left" aria-label="Move left">←</button>
@@ -830,6 +833,7 @@
       }
       selectedTool = id;
       refreshToolbelt();
+      persistShift();
       showToast(`${id[0].toUpperCase()}${id.slice(1)} selected`);
     }
 
@@ -1250,6 +1254,20 @@
         .sort((first, second) => first.distance - second.distance)[0];
     }
 
+    function isBlockedPosition(x, z) {
+      const inGarageDepth = z > -16.4 && z < 2.75;
+      const withinSideWalls = inGarageDepth && (x < -30.55 || x > -5.45);
+      if (withinSideWalls) return true;
+      if (x > -31.8 && x < -4.2 && Math.abs(z + 15.75) < .72) return true;
+      if (x > -31.8 && x < -4.2 && Math.abs(z - 2) < .72) {
+        const inLeftBay = x > -28.1 && x < -21.9;
+        const inRightBay = x > -14.1 && x < -7.9;
+        if (!inLeftBay && !inRightBay) return true;
+        if (!doorsPassable()) return true;
+      }
+      return false;
+    }
+
     function updateInteractionPrompt() {
       const prompt = document.querySelector("#work-prompt");
       const switchDistance = Math.hypot(mechanic.x - garageSwitchPosition.x, mechanic.z - garageSwitchPosition.z);
@@ -1261,7 +1279,9 @@
       else if (!clockedIn && clockDistance < 4.5) message = "E · CLOCK IN AT MOTOR WORKS";
       else if (clockedIn && !doorsPassable() && clockDistance < 12) message = "GO TO THE WALL SWITCH TO OPEN THE BAY";
       else if (clockedIn && doorsPassable() && availableTool && availableTool.distance < 2.8) message = `E · PICK UP ${availableTool.tool.label.toUpperCase()}`;
-      else if (clockedIn && doorsPassable() && carDistance < 4.8) message = selectedTool ? `E · USE ${selectedTool.toUpperCase()} ON BAY 01` : "SELECT A TOOL TO WORK ON BAY 01";
+      else if (clockedIn && doorsPassable() && carDistance < 4.8) {
+        message = !selectedTool ? "SELECT A TOOL TO WORK ON BAY 01" : repairsDone.has(selectedTool) ? "THAT REPAIR IS DONE · SELECT ANOTHER TOOL" : `E · USE ${selectedTool.toUpperCase()} ON BAY 01`;
+      }
       prompt.hidden = !message;
       if (message) prompt.textContent = message;
     }
@@ -1273,19 +1293,14 @@
       garageSwitchButton.position.y = garageOpen ? 1.48 : 1.62;
       showToast(garageOpen ? "Wall switch engaged · Bay doors opening" : "Wall switch engaged · Bay doors closing");
       if (clockedIn) document.querySelector("#map-objective-text").textContent = garageOpen ? "Collect the wrench, driver, and hammer from the back workbench." : "Open the bay doors from the wall switch.";
+      persistShift();
     }
 
     function clockIn() {
       clockedIn = true;
       document.querySelector("#map-shift").textContent = "On the clock · Bay 01";
       document.querySelector("#map-objective-text").textContent = "Open the bay using the wall switch beside the garage.";
-      const save = JSON.parse(localStorage.getItem(saveKey) || "null");
-      if (save) {
-        save.clockedIn = true;
-        save.savedAt = new Date().toISOString();
-        localStorage.setItem(saveKey, JSON.stringify(save));
-        refreshSave();
-      }
+      persistShift();
       showToast("Clocked in · Bay 01 is waiting");
     }
 
@@ -1307,30 +1322,16 @@
         return;
       }
       repairsDone.add(selectedTool);
-      if (selectedTool === "wrench") workCarMaterial.color.set("#ae6046");
-      if (selectedTool === "screwdriver") {
-        batteryTerminalMaterial.color.set("#78a35a");
-        batteryTerminalMaterial.emissive.set("#31551a");
-      }
-      if (selectedTool === "hammer") {
-        workCarDamage.visible = false;
-        workCarMaterial.color.set("#c16a4b");
-      }
+      applyRepairAppearance(selectedTool);
       if (repairsDone.size === toolSpecs.length) {
         document.querySelector("#map-objective-text").textContent = "Bay 01 complete · The customer car is road-ready.";
         document.querySelector("#map-shift").textContent = "Service complete · Bay 01";
-        const save = JSON.parse(localStorage.getItem(saveKey) || "null");
-        if (save) {
-          save.completedRepairs = (save.completedRepairs || 0) + 1;
-          save.savedAt = new Date().toISOString();
-          localStorage.setItem(saveKey, JSON.stringify(save));
-          refreshSave();
-        }
         showToast("Repair complete · Bay 01 is back on the road");
       } else {
         document.querySelector("#map-objective-text").textContent = `Bay 01 · ${repairsDone.size}/3 repairs complete. Keep working on the car.`;
         showToast(`You ${repairTasks[selectedTool]} · ${repairsDone.size}/3 done`);
       }
+      persistShift();
     }
 
     function interactAtShop() {
@@ -1358,6 +1359,7 @@
         toolItems.get(availableTool.tool.id).visible = false;
         if (!selectedTool) selectedTool = availableTool.tool.id;
         refreshToolbelt();
+        persistShift();
         const count = toolInventory.size;
         document.querySelector("#map-objective-text").textContent = count === toolSpecs.length
           ? "Use the tools on the damaged car in Bay 01."
@@ -1387,13 +1389,12 @@
       const forward = -movementY;
       const worldX = -Math.sin(cameraYaw) * forward + Math.cos(cameraYaw) * movementX;
       const worldZ = -Math.cos(cameraYaw) * forward - Math.sin(cameraYaw) * movementX;
-      mechanic.x = Math.max(-49, Math.min(48, mechanic.x + worldX / movementLength * 7 * elapsed));
-      mechanic.z = Math.max(-28, Math.min(42, mechanic.z + worldZ / movementLength * 7 * elapsed));
+      const nextX = Math.max(-49, Math.min(48, mechanic.x + worldX / movementLength * 7 * elapsed));
+      const nextZ = Math.max(-28, Math.min(42, mechanic.z + worldZ / movementLength * 7 * elapsed));
+      if (!isBlockedPosition(nextX, mechanic.z)) mechanic.x = nextX;
+      if (!isBlockedPosition(mechanic.x, nextZ)) mechanic.z = nextZ;
       mechanicGroup.position.set(mechanic.x, 0, mechanic.z);
-      const nearBay = Math.hypot(mechanic.x + 17, mechanic.z - 5) <= 7;
-      const workPrompt = document.querySelector("#work-prompt");
-      workPrompt.hidden = !nearBay;
-      if (nearBay) workPrompt.textContent = clockedIn ? "Press E to check the open bay" : "Press E to clock in at Motor Works";
+      updateInteractionPrompt();
       animateWorld(elapsed);
       drawMap();
       mapFrame = window.requestAnimationFrame(updateMap);
@@ -1417,8 +1418,9 @@
     window.addEventListener("keydown", (event) => {
       if (!mapActive) return;
       const key = event.key.toLowerCase();
-      if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright", "e"].includes(key)) event.preventDefault();
+      if (["w", "a", "s", "d", "arrowup", "arrowdown", "arrowleft", "arrowright", "e", "1", "2", "3"].includes(key)) event.preventDefault();
       if (key === "e" && !event.repeat) interactAtShop();
+      if (["1", "2", "3"].includes(key) && !event.repeat) selectTool(toolSpecs[Number(key) - 1].id);
       pressedKeys.add(key);
     });
     window.addEventListener("keyup", (event) => pressedKeys.delete(event.key.toLowerCase()));
@@ -1447,6 +1449,10 @@
     ["pointerup", "pointercancel"].forEach((eventName) => gameCanvas.addEventListener(eventName, () => { touchLookPointer = null; }));
 
     document.querySelectorAll(".touch-key").forEach((button) => {
+      if (button.id === "touch-use") {
+        button.addEventListener("click", interactAtShop);
+        return;
+      }
       const direction = { up: "arrowup", down: "arrowdown", left: "arrowleft", right: "arrowright" }[button.dataset.direction];
       button.addEventListener("pointerdown", (event) => { event.preventDefault(); pressedKeys.add(direction); });
       ["pointerup", "pointercancel", "pointerleave"].forEach((eventName) => button.addEventListener(eventName, () => pressedKeys.delete(direction)));
@@ -1480,26 +1486,75 @@
         : "New game · Ready to begin";
     }
 
+    function persistShift() {
+      const save = JSON.parse(localStorage.getItem(saveKey) || "null");
+      if (!save) return;
+      save.clockedIn = clockedIn;
+      save.garageOpen = garageOpen;
+      save.collectedTools = [...toolInventory];
+      save.selectedTool = selectedTool;
+      save.completedTasks = [...repairsDone];
+      save.savedAt = new Date().toISOString();
+      localStorage.setItem(saveKey, JSON.stringify(save));
+      refreshSave();
+    }
+
+    function applyRepairAppearance(tool) {
+      if (tool === "wrench") workCarMaterial.color.set("#ae6046");
+      if (tool === "screwdriver") {
+        batteryTerminalMaterial.color.set("#78a35a");
+        batteryTerminalMaterial.emissive.set("#31551a");
+      }
+      if (tool === "hammer") {
+        workCarDamage.visible = false;
+        workCarMaterial.color.set("#c16a4b");
+      }
+    }
+
+    function restoreShift(save) {
+      clockedIn = Boolean(save.clockedIn);
+      garageOpen = Boolean(save.garageOpen);
+      toolInventory.clear();
+      for (const tool of save.collectedTools || []) {
+        if (toolSpecs.some((spec) => spec.id === tool)) toolInventory.add(tool);
+      }
+      repairsDone.clear();
+      for (const task of save.completedTasks || []) {
+        if (toolSpecs.some((spec) => spec.id === task)) repairsDone.add(task);
+      }
+      selectedTool = toolInventory.has(save.selectedTool) ? save.selectedTool : toolInventory.values().next().value || null;
+      for (const [id, item] of toolItems) item.visible = !toolInventory.has(id);
+      workCarDamage.visible = !repairsDone.has("hammer");
+      workCarMaterial.color.set(repairsDone.has("hammer") ? "#c16a4b" : repairsDone.has("wrench") ? "#ae6046" : "#99422f");
+      batteryTerminalMaterial.color.set(repairsDone.has("screwdriver") ? "#78a35a" : "#c74d37");
+      batteryTerminalMaterial.emissive.set(repairsDone.has("screwdriver") ? "#31551a" : "#7d1e11");
+      for (const door of garageDoors) {
+        door.offset = garageOpen ? 2.85 : 0;
+        door.group.position.y = door.startY + door.offset;
+      }
+      garageSwitchMaterial.color.set(garageOpen ? "#758252" : "#a84431");
+      garageSwitchMaterial.emissive.set(garageOpen ? "#40501f" : "#50150e");
+      garageSwitchButton.position.y = garageOpen ? 1.48 : 1.62;
+      refreshToolbelt();
+      document.querySelector("#map-shift").textContent = repairsDone.size === toolSpecs.length ? "Service complete · Bay 01" : clockedIn ? "On the clock · Bay 01" : `Shift ${save.shift} · Clock in`;
+      document.querySelector("#map-objective-text").textContent = repairsDone.size === toolSpecs.length
+        ? "Bay 01 complete · The customer car is road-ready."
+        : repairsDone.size ? `Bay 01 · ${repairsDone.size}/3 repairs complete. Keep working on the car.`
+          : clockedIn ? garageOpen ? "Collect the wrench, driver, and hammer from the back workbench." : "Open the bay using the wall switch beside the garage."
+            : "Head to the open bay at Motor Works.";
+    }
+
     document.querySelector("#play-button").addEventListener("click", () => {
       playTrack("game");
       const save = JSON.parse(localStorage.getItem(saveKey) || "null");
-      let currentSave;
-      if (save) {
-        save.shift += 1;
-        save.savedAt = new Date().toISOString();
-        localStorage.setItem(saveKey, JSON.stringify(save));
-        currentSave = save;
-      } else {
-        currentSave = { shift: 1, savedAt: new Date().toISOString() };
-        localStorage.setItem(saveKey, JSON.stringify(currentSave));
-      }
-      clockedIn = false;
-      document.querySelector("#map-shift").textContent = `Shift ${currentSave.shift} · Clock in`;
-      document.querySelector("#map-objective-text").textContent = "Head to the open bay at Motor Works.";
+      const currentSave = save?.shift > 0 ? save : { ...save, shift: 1, collectedTools: [], completedTasks: [] };
+      currentSave.savedAt = new Date().toISOString();
+      localStorage.setItem(saveKey, JSON.stringify(currentSave));
       refreshSave();
       menuScreen.hidden = true;
       gameScreen.hidden = false;
       startMap();
+      restoreShift(currentSave);
     });
 
     document.querySelector("#save-button").addEventListener("click", () => {
@@ -1518,12 +1573,7 @@
       playTrack("menu");
     });
 
-    document.querySelector("#garage-action").addEventListener("click", (event) => {
-      garageOpen = !garageOpen;
-      event.currentTarget.textContent = garageOpen ? "Close garage" : "Open garage";
-      event.currentTarget.setAttribute("aria-pressed", String(garageOpen));
-      showToast(garageOpen ? "Garage doors opening" : "Garage doors closing");
-    });
+    toolSlots.forEach((slot) => slot.addEventListener("click", () => selectTool(slot.dataset.tool)));
 
     document.querySelectorAll("dialog .close-button, dialog [data-close]").forEach((button) => {
       button.addEventListener("click", () => button.closest("dialog").close());
@@ -1539,7 +1589,7 @@
       const save = JSON.parse(localStorage.getItem(saveKey) || "null") || { shift: 0 };
       save.savedAt = new Date().toISOString();
       localStorage.setItem(saveKey, JSON.stringify(save));
-      refreshSave();
+      persistShift();
       saveDialog.close();
       showToast("Save file updated");
     });
